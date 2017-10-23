@@ -2,6 +2,7 @@ package com.defunkt.Indoor;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
+import com.navigine.naviginesdk.NavigationThread;
+import com.navigine.naviginesdk.NavigineSDK;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -58,6 +61,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lblClickHere.setOnClickListener(this);
         lblForgotPassword.setOnClickListener(this);
         progressDialog = new ProgressDialog(this);
+
+        //initialize navigine
+        final String USER_HASH = "3255-7212-207D-BFE1";
+
+        NavigineSDK.initialize(getApplicationContext(), USER_HASH, null);
+
+        if (!NavigineSDK.initialize(getApplicationContext(), USER_HASH, null))
+            Toast.makeText(this, "Unable to initialize Navigation library!",
+                    Toast.LENGTH_LONG).show();
+
+        class LoadTask extends AsyncTask<Void, Void, Boolean> {
+
+            String LOCATION_NAME = "North Foundation";
+
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                return NavigineSDK.loadLocation(LOCATION_NAME, 30) ? Boolean.TRUE : Boolean.FALSE;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean result){
+                if(result.booleanValue()){
+                    NavigineSDK.getNavigation().setMode(NavigationThread.MODE_NORMAL);
+                }else{
+                    Log.d("Navigine_Init", "Failed to start.");
+                }
+            }
+        }(new LoadTask()).execute();
 
 
         /***************************added bundle****************************************/

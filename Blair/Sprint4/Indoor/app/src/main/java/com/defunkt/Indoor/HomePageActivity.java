@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.navigine.naviginesdk.NavigationThread;
 import com.navigine.naviginesdk.NavigineSDK;
 
 public class HomePageActivity extends AppCompatActivity
@@ -24,6 +25,7 @@ public class HomePageActivity extends AppCompatActivity
 
     //firebase auth object
     private FirebaseAuth firebaseAuth;
+    String LOCATION_NAME = "North Foundation";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +104,9 @@ public class HomePageActivity extends AppCompatActivity
             //logging out the user
             firebaseAuth.signOut();
             //closing activity
+            NavigationThread mNavi;
+            mNavi = null;
+            NavigineSDK.finish();
             finish();
             //starting login activity
             startActivity(new Intent(this, MainActivity.class));
@@ -135,13 +140,17 @@ public class HomePageActivity extends AppCompatActivity
         }
 
         else if (id == R.id.navigine) {
-           final String USER_HASH = "3255-7212-207D-BFE1";
 
-            NavigineSDK.initialize(getApplicationContext(), USER_HASH, null);
+            NavigationThread mNavi = null;
 
-            if (!NavigineSDK.initialize(getApplicationContext(), USER_HASH, null))
-                Toast.makeText(this, "Unable to initialize Navigation library!",
-                        Toast.LENGTH_LONG).show();
+            String locationFile = NavigineSDK.getLocationFile(LOCATION_NAME);
+
+            mNavi = NavigineSDK.getNavigation();
+            if (mNavi != null && mNavi.loadLocation(locationFile)){
+                mNavi.setMode(NavigationThread.MODE_NORMAL);
+
+            }
+
 
         }
 
