@@ -1,17 +1,9 @@
-package com.defunkt.myapplication;
+package com.defunkt.Indoor;
 
-import android.*;
-import android.Manifest;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -28,8 +20,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
 
-import static java.security.AccessController.getContext;
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
 
@@ -40,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView lblClickHere;
     private TextView lblForgotPassword;
     private String TAG;
-    private int PERMISSION_LOCATION = 1334;
+
 
     //progress dialog
     private ProgressDialog progressDialog;
@@ -56,28 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setTitle("OU Indoor Login");
 
-        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)){
-                AlertDialog.Builder builder = new AlertDialog.Builder(this).setMessage("We need gps location permissions")
-                       .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
-                           @Override
-                           public void onClick(DialogInterface dialog, int which) {
-                               ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_LOCATION);
 
-                           }
-                       })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                builder.show();
-            }else{
-
-            }
-
-        }
 
         //getting firebase auth object
         firebaseAuth = FirebaseAuth.getInstance();

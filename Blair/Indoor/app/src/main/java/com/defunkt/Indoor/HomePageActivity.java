@@ -1,4 +1,4 @@
-package com.defunkt.myapplication;
+package com.defunkt.Indoor;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -26,6 +26,8 @@ public class HomePageActivity extends AppCompatActivity
     //firebase auth object
     private FirebaseAuth firebaseAuth;
 
+    private int PERMISSION_LOCATION = 1334;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,7 +39,7 @@ public class HomePageActivity extends AppCompatActivity
 
         //if the user is not logged in
         //that means current user will return null
-        if(firebaseAuth.getCurrentUser() == null){
+        if (firebaseAuth.getCurrentUser() == null) {
             //closing this activity
             finish();
             //starting login activity
@@ -131,12 +133,14 @@ public class HomePageActivity extends AppCompatActivity
         }
         //if the map is selected inside the drop down it goes to the map screen
         else if (id == R.id.nav_Map) {
-            MapFragment fragment = new MapFragment();
-            android.support.v4.app.FragmentTransaction fragmentTransaction =
-                    getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.fragment_container, fragment);
-            fragmentTransaction.commit();
+
+        MapFragment fragment = new MapFragment();
+        android.support.v4.app.FragmentTransaction fragmentTransaction =
+                getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_container, fragment);
+        fragmentTransaction.commit();
         }
+
 
         else if (id == R.id.navigine) {
             NavigineFragment fragment = new NavigineFragment();
@@ -145,10 +149,7 @@ public class HomePageActivity extends AppCompatActivity
             fragmentTransaction.replace(R.id.fragment_container, fragment);
             fragmentTransaction.commit();
 
-        }
-
-
-        else if(id == R.id.nav_player_profile){
+        } else if (id == R.id.nav_player_profile) {
             UserProfileFragment fragment = new UserProfileFragment();
             android.support.v4.app.FragmentTransaction fragmentTransaction =
                     getSupportFragmentManager().beginTransaction();
@@ -160,4 +161,7 @@ public class HomePageActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
 }
+
+

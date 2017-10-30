@@ -1,4 +1,4 @@
-package com.defunkt.myapplication;
+package com.defunkt.Indoor;
 
 import com.google.firebase.database.DatabaseReference;
 

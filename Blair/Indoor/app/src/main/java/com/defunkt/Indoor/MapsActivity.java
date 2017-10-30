@@ -1,4 +1,4 @@
-package com.defunkt.myapplication;
+package com.defunkt.Indoor;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;

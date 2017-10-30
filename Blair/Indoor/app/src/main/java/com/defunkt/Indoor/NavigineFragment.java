@@ -1,16 +1,20 @@
-package com.defunkt.myapplication;
+package com.defunkt.Indoor;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.navigine.naviginesdk.NavigationThread;
 import com.navigine.naviginesdk.NavigineSDK;
@@ -21,18 +25,20 @@ import static com.navigine.naviginesdk.NavigineSDK.TAG;
 
 public class NavigineFragment extends Fragment {
 
-    private NavigationThread mNavigation;
-    static String USER_HASH;
-    private String LOCATION_NAME;
+    private NavigationThread mNavigation = null;
+    private String USER_HASH = "3255-7212-207D-BFE1";
+    private String LOCATION_NAME= "North Foundation";
     private int LOCATION_ID=2239;
-    static String SERVER;
+
+
     public static float DisplayWidthPx            = 0.0f;
     public static float DisplayHeightPx           = 0.0f;
     public static float DisplayWidthDp            = 0.0f;
     public static float DisplayHeightDp           = 0.0f;
     public static float DisplayDensity            = 0.0f;
+    final static int permission = 1334;
 
-    public static boolean PermissionLocation      = true;
+    public static boolean PermissionLocation      = false;
 
 
     @Override
@@ -49,7 +55,7 @@ public class NavigineFragment extends Fragment {
         (new InitTask(getContext())).execute();
 
         //loads map file from server to the phone
-        (new LoadTask()).execute();
+        requestPerm();
 
     }
 
@@ -64,7 +70,7 @@ public class NavigineFragment extends Fragment {
         NavigineSDK.setParameter(context, "location_retry_timeout",       300);
         NavigineSDK.setParameter(context, "post_beacons_enabled",         true);
         NavigineSDK.setParameter(context, "post_messages_enabled",        true);
-        if (!NavigineSDK.initialize(context, USER_HASH, SERVER))
+        if (!NavigineSDK.initialize(context, USER_HASH, null))
             return false;
 
         mNavigation = NavigineSDK.getNavigation();
@@ -81,32 +87,6 @@ public class NavigineFragment extends Fragment {
                 DisplayDensity));
 
         return true;
-    }
-
-    class LoadTask extends AsyncTask<Void, Void, Boolean>
-    {
-        @Override protected Boolean doInBackground(Void... params)
-        {
-            return NavigineSDK.loadLocation(LOCATION_ID, 30) ?
-                    Boolean.TRUE : Boolean.FALSE;
-        }
-
-        @Override protected void onPostExecute(Boolean result)
-        {
-            if (result.booleanValue())
-            {
-                // Location is successully loaded
-                // Do whatever you want here, e.g. you can start navigation
-                NavigineSDK.getNavigation().setMode(NavigationThread.MODE_NORMAL);
-
-            }
-            else
-            {
-                // Error downloading location
-                // Try again later or contact technical support
-                Log.d(TAG, "Error downloading location!");
-            }
-        }
     }
 
     class InitTask extends AsyncTask<Void, Void, Boolean>
@@ -147,6 +127,53 @@ public class NavigineFragment extends Fragment {
             {
                 Log.d(TAG, mErrorMsg);
             }
+        }
+    }
+
+    public void requestPerm(){
+        if(ActivityCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) ==PackageManager.PERMISSION_GRANTED){
+            class LoadTask extends AsyncTask<Void, Void, Boolean>
+            {
+                @Override protected Boolean doInBackground(Void... params)
+                {
+                    return NavigineSDK.loadLocation(LOCATION_ID, 30) ?
+                            Boolean.TRUE : Boolean.FALSE;
+                }
+
+                @Override protected void onPostExecute(Boolean result)
+                {
+                    if (result.booleanValue())
+                    {
+                        // Location is successully loaded
+                        // Do whatever you want here, e.g. you can start navigation
+                        NavigineSDK.getNavigation().setMode(NavigationThread.MODE_NORMAL);
+
+                    }
+                    else
+                    {
+                        // Error downloading location
+                        // Try again later or contact technical support
+                        Log.d(TAG, "Error downloading location!");
+                    }
+                }
+            }
+
+        }else{
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, permission);
+        }
+
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(grantResults[0]==PackageManager.PERMISSION_GRANTED){
+            requestPerm();
+
+        }else{
+            Toast.makeText(getActivity().getApplicationContext(), "This app requires location permission", Toast.LENGTH_SHORT).show();
         }
     }
 }
