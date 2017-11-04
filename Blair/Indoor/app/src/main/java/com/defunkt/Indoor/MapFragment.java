@@ -13,7 +13,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 
+<<<<<<< HEAD
 public class MapFragment extends Fragment implements OnMapReadyCallback {
+=======
+public class    MapFragment extends Fragment implements OnMapReadyCallback {
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
     private GoogleMap mMap;
 

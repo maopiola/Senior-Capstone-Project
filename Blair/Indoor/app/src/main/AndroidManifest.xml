@@ -19,7 +19,10 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<<<<<<< HEAD
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+=======
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
@@ -32,7 +35,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+<<<<<<< HEAD
         <activity android:name=".MainActivity">
+=======
+        <activity android:name="com.defunkt.Indoor.MainActivity">
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -40,10 +47,17 @@
             </intent-filter>
         </activity>
         <activity
+<<<<<<< HEAD
             android:name=".HomePageActivity"
             android:label="@string/title_activity_home_page"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".RegistrationActivity" />
+=======
+            android:name="com.defunkt.Indoor.HomePageActivity"
+            android:label="@string/title_activity_home_page"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name="com.defunkt.Indoor.RegistrationActivity" />
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -58,10 +72,16 @@
             android:value="@string/google_maps_key" />
 
         <activity
+<<<<<<< HEAD
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps" />
         <activity android:name=".ForgotPasswordActivity" />
         <activity android:name=".UserProfileActivity"></activity>
+=======
+            android:name="com.defunkt.Indoor.MapsActivity"
+            android:label="@string/title_activity_maps" />
+        <activity android:name="com.defunkt.Indoor.ForgotPasswordActivity" />
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
     </application>
 
 </manifest>

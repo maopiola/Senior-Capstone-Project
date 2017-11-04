@@ -2,7 +2,10 @@ package com.defunkt.Indoor;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+<<<<<<< HEAD
 import android.os.AsyncTask;
+=======
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -20,8 +23,11 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
+<<<<<<< HEAD
 import com.navigine.naviginesdk.NavigationThread;
 import com.navigine.naviginesdk.NavigineSDK;
+=======
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -34,6 +40,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView lblForgotPassword;
     private String TAG;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
     //progress dialog
     private ProgressDialog progressDialog;
 
@@ -48,6 +58,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setTitle("OU Indoor Login");
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
         //getting firebase auth object
         firebaseAuth = FirebaseAuth.getInstance();
 
@@ -62,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lblForgotPassword.setOnClickListener(this);
         progressDialog = new ProgressDialog(this);
 
+<<<<<<< HEAD
         //initialize navigine
         final String USER_HASH = "3255-7212-207D-BFE1";
 
@@ -90,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }(new LoadTask()).execute();
 
+=======
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
         /***************************added bundle****************************************/
         Bundle emailData = getIntent().getExtras();

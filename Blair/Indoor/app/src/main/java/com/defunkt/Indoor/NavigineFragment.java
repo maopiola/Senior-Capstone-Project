@@ -7,13 +7,19 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+<<<<<<< HEAD
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+=======
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+<<<<<<< HEAD
 
 import com.navigine.naviginesdk.LocationView;
 import com.navigine.naviginesdk.NavigationThread;
@@ -21,6 +27,13 @@ import com.navigine.naviginesdk.NavigineSDK;
 
 import java.util.ArrayList;
 import java.util.List;
+=======
+import android.widget.Toast;
+
+import com.navigine.naviginesdk.NavigationThread;
+import com.navigine.naviginesdk.NavigineSDK;
+
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 import java.util.Locale;
 
 import static com.navigine.naviginesdk.NavigineSDK.TAG;
@@ -29,6 +42,7 @@ public class NavigineFragment extends Fragment {
 
     private NavigationThread mNavigation = null;
     private String USER_HASH = "3255-7212-207D-BFE1";
+<<<<<<< HEAD
     private String LOCATION_NAME = "N Foundation";
     private int LOCATION_ID =2267;
     private final int permission = 1334;
@@ -38,6 +52,21 @@ public class NavigineFragment extends Fragment {
     private float displayHeightDp;
     private float displayDensity;
     private LocationView mLocationView;
+=======
+    private String LOCATION_NAME= "North Foundation";
+    private int LOCATION_ID=2239;
+
+
+    public static float DisplayWidthPx            = 0.0f;
+    public static float DisplayHeightPx           = 0.0f;
+    public static float DisplayWidthDp            = 0.0f;
+    public static float DisplayHeightDp           = 0.0f;
+    public static float DisplayDensity            = 0.0f;
+    final static int permission = 1334;
+
+    public static boolean PermissionLocation      = false;
+
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -49,6 +78,7 @@ public class NavigineFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+<<<<<<< HEAD
         //initializes locationview...it's what views the map
         mLocationView = getActivity().findViewById(R.id.navigation_location_view);
 
@@ -211,6 +241,18 @@ public class NavigineFragment extends Fragment {
     }
 
     public boolean initialize(Context context){
+=======
+        //initializes Navigine
+        (new InitTask(getContext())).execute();
+
+        //loads map file from server to the phone
+        requestPerm();
+
+    }
+
+    public boolean initialize(Context context)
+    {
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
         NavigineSDK.setParameter(context, "debug_level", 2);
         NavigineSDK.setParameter(context, "apply_server_config_enabled",  false);
         NavigineSDK.setParameter(context, "actions_updates_enabled",      false);
@@ -225,6 +267,7 @@ public class NavigineFragment extends Fragment {
 
         mNavigation = NavigineSDK.getNavigation();
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+<<<<<<< HEAD
         displayWidthPx  = displayMetrics.widthPixels;
         displayHeightPx = displayMetrics.heightPixels;
         displayDensity  = displayMetrics.density;
@@ -235,15 +278,33 @@ public class NavigineFragment extends Fragment {
                 displayWidthPx, displayHeightPx,
                 displayWidthDp, displayHeightDp,
                 displayDensity));
+=======
+        DisplayWidthPx  = displayMetrics.widthPixels;
+        DisplayHeightPx = displayMetrics.heightPixels;
+        DisplayDensity  = displayMetrics.density;
+        DisplayWidthDp  = DisplayWidthPx  / DisplayDensity;
+        DisplayHeightDp = DisplayHeightPx / DisplayDensity;
+
+        Log.d(TAG, String.format(Locale.ENGLISH, "Display size: %.1fpx x %.1fpx (%.1fdp x %.1fdp, density=%.2f)",
+                DisplayWidthPx, DisplayHeightPx,
+                DisplayWidthDp, DisplayHeightDp,
+                DisplayDensity));
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
         return true;
     }
 
+<<<<<<< HEAD
     class InitTask extends AsyncTask<Void, Void, Boolean>{
+=======
+    class InitTask extends AsyncTask<Void, Void, Boolean>
+    {
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
         private Context mContext  = null;
         private String  mErrorMsg = null;
         NavigineFragment mNav = new NavigineFragment();
 
+<<<<<<< HEAD
         public InitTask(Context context){
             mContext = context.getApplicationContext();
         }
@@ -258,10 +319,30 @@ public class NavigineFragment extends Fragment {
 
             if (!NavigineSDK.loadLocation(LOCATION_ID, 30)){
                 mErrorMsg = "Error downloading location 'Navigine!";
+=======
+        public InitTask(Context context)
+        {
+            mContext = context.getApplicationContext();
+        }
+
+        @Override protected Boolean doInBackground(Void... params)
+        {
+            try { Thread.sleep(1000); } catch ( Throwable e) { }
+            if (!mNav.initialize(getActivity().getApplicationContext()))
+            {
+                mErrorMsg = "Error downloading location 'Navigine Demo'! Please, try again later or contact technical support";
+                return Boolean.FALSE;
+            }
+            Log.d(TAG, "Initialized!");
+            if (!NavigineSDK.loadLocation(LOCATION_ID, 30))
+            {
+                mErrorMsg = "Error downloading location 'Navigine Demo'! Please, try again later or contact technical support";
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
                 return Boolean.FALSE;
             }
             return Boolean.TRUE;
         }
+<<<<<<< HEAD
     }
 
     class LoadTask extends AsyncTask<Void, Void, Boolean>{
@@ -288,6 +369,66 @@ public class NavigineFragment extends Fragment {
         mNavigation = NavigineSDK.getNavigation();
         if (mNavigation != null && mNavigation.loadLocation(locationFile)){
             mNavigation.setMode(NavigationThread.MODE_NORMAL);
+=======
+
+        @Override protected void onPostExecute(Boolean result)
+        {
+            if (result.booleanValue())
+            {
+                // Starting main activity
+            }
+            else
+            {
+                Log.d(TAG, mErrorMsg);
+            }
+        }
+    }
+
+    public void requestPerm(){
+        if(ActivityCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) ==PackageManager.PERMISSION_GRANTED){
+            class LoadTask extends AsyncTask<Void, Void, Boolean>
+            {
+                @Override protected Boolean doInBackground(Void... params)
+                {
+                    return NavigineSDK.loadLocation(LOCATION_ID, 30) ?
+                            Boolean.TRUE : Boolean.FALSE;
+                }
+
+                @Override protected void onPostExecute(Boolean result)
+                {
+                    if (result.booleanValue())
+                    {
+                        // Location is successully loaded
+                        // Do whatever you want here, e.g. you can start navigation
+                        NavigineSDK.getNavigation().setMode(NavigationThread.MODE_NORMAL);
+
+                    }
+                    else
+                    {
+                        // Error downloading location
+                        // Try again later or contact technical support
+                        Log.d(TAG, "Error downloading location!");
+                    }
+                }
+            }
+
+        }else{
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, permission);
+        }
+
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(grantResults[0]==PackageManager.PERMISSION_GRANTED){
+            requestPerm();
+
+        }else{
+            Toast.makeText(getActivity().getApplicationContext(), "This app requires location permission", Toast.LENGTH_SHORT).show();
+>>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
         }
     }
 }
