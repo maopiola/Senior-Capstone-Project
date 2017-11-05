@@ -2,10 +2,7 @@ package com.defunkt.Indoor;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-<<<<<<< HEAD
 import android.os.AsyncTask;
-=======
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -23,11 +20,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
-<<<<<<< HEAD
-import com.navigine.naviginesdk.NavigationThread;
 import com.navigine.naviginesdk.NavigineSDK;
-=======
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
+
+import static com.defunkt.Indoor.NavigineFragment.initialize;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -39,11 +34,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView lblClickHere;
     private TextView lblForgotPassword;
     private String TAG;
+    private int LOCATION_ID =2267;
 
-<<<<<<< HEAD
-=======
-
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
     //progress dialog
     private ProgressDialog progressDialog;
 
@@ -58,13 +50,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setTitle("OU Indoor Login");
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
         //getting firebase auth object
         firebaseAuth = FirebaseAuth.getInstance();
+
+        //initializes Navigine
+        (new InitTask()).execute();
 
         //initializing views
         btnSignIn = (Button)findViewById(R.id.btnSignIn);
@@ -76,38 +66,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lblClickHere.setOnClickListener(this);
         lblForgotPassword.setOnClickListener(this);
         progressDialog = new ProgressDialog(this);
-
-<<<<<<< HEAD
-        //initialize navigine
-        final String USER_HASH = "3255-7212-207D-BFE1";
-
-        NavigineSDK.initialize(getApplicationContext(), USER_HASH, null);
-
-        if (!NavigineSDK.initialize(getApplicationContext(), USER_HASH, null))
-            Toast.makeText(this, "Unable to initialize Navigation library!",
-                    Toast.LENGTH_LONG).show();
-
-        class LoadTask extends AsyncTask<Void, Void, Boolean> {
-
-            String LOCATION_NAME = "North Foundation";
-
-            @Override
-            protected Boolean doInBackground(Void... voids) {
-                return NavigineSDK.loadLocation(LOCATION_NAME, 30) ? Boolean.TRUE : Boolean.FALSE;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean result){
-                if(result.booleanValue()){
-                    NavigineSDK.getNavigation().setMode(NavigationThread.MODE_NORMAL);
-                }else{
-                    Log.d("Navigine_Init", "Failed to start.");
-                }
-            }
-        }(new LoadTask()).execute();
-
-=======
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
         /***************************added bundle****************************************/
         Bundle emailData = getIntent().getExtras();
@@ -186,6 +144,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }else if (view == lblForgotPassword){
             Intent myIntent = new Intent(this, ForgotPasswordActivity.class);
             startActivity(myIntent);
+        }
+    }
+
+    class InitTask extends AsyncTask<Void, Void, Boolean> {
+        private String  mErrorMsg = null;
+        @Override protected Boolean doInBackground(Void... params){
+            if (!initialize(getApplicationContext())){
+                mErrorMsg = "Error downloading location Navigine!";
+                Log.e(TAG, mErrorMsg);
+                return Boolean.FALSE;
+            }
+            Log.d(TAG, "Initialized!");
+
+            if (!NavigineSDK.loadLocation(LOCATION_ID, 30)){
+                mErrorMsg = "Error downloading location 'Navigine!";
+                Log.e(TAG, mErrorMsg);
+                return Boolean.FALSE;
+            }
+            return Boolean.TRUE;
         }
     }
 }

@@ -22,10 +22,7 @@ public class HomePageActivity extends AppCompatActivity
 
     NavigationView navigationView = null;
     Toolbar toolbar = null;
-<<<<<<< HEAD
     NavigationThread mNavi;
-=======
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 
     //firebase auth object
     private FirebaseAuth firebaseAuth;
@@ -109,10 +106,6 @@ public class HomePageActivity extends AppCompatActivity
             //logging out the user
             firebaseAuth.signOut();
             //closing activity
-<<<<<<< HEAD
-=======
-            NavigationThread mNavi;
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
             mNavi = null;
             NavigineSDK.finish();
             finish();

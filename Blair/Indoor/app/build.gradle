@@ -4,11 +4,7 @@ android {
     compileSdkVersion 26
     buildToolsVersion "26.0.1"
     defaultConfig {
-<<<<<<< HEAD
         applicationId "com.defunkt.myapplication"
-=======
-        applicationId 'com.defunkt.myapplication'
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
@@ -21,20 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-<<<<<<< HEAD
-=======
-    productFlavors {
-    }
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 }
 
 dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
-<<<<<<< HEAD
-=======
-
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
     })
     compile 'com.google.firebase:firebase-auth:10.0.1'
     compile 'com.google.firebase:firebase-database:10.0.1'
@@ -46,12 +33,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile files('libs/NavigineSDK.jar')
     compile fileTree(include: ['*.jar'], dir: 'libs')
-<<<<<<< HEAD
 
-=======
-    compile 'com.google.code.gson:gson:2.4'
-    compile 'com.mapspeople.mapsindoors:mapsindoorssdk:1.8.5@aar'
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 }
 
 task copyTask(type: Copy) {
@@ -60,18 +42,6 @@ task copyTask(type: Copy) {
     into 'libs/'
 }
 
-<<<<<<< HEAD
 preBuild.dependsOn copyTask
 
-=======
-repositories{
-    maven {
-        url 'http://maven.mapsindoors.com/'
-    }
-}
-
-preBuild.dependsOn copyTask
-
-
->>>>>>> e9a30b36220d4d726680a2c4d2714b15bd160a06
 apply plugin: 'com.google.gms.google-services'
