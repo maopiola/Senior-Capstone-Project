@@ -27,8 +27,6 @@ public class HomePageActivity extends AppCompatActivity
     //firebase auth object
     private FirebaseAuth firebaseAuth;
 
-    private int PERMISSION_LOCATION = 1334;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,15 +139,17 @@ public class HomePageActivity extends AppCompatActivity
         fragmentTransaction.commit();
         }
 
-
+        //goes to navigine fragment
         else if (id == R.id.navigine) {
             NavigineFragment fragment = new NavigineFragment();
             android.support.v4.app.FragmentTransaction fragmentTransaction =
                     getSupportFragmentManager().beginTransaction();
             fragmentTransaction.replace(R.id.fragment_container, fragment);
             fragmentTransaction.commit();
+        }
 
-        } else if (id == R.id.nav_player_profile) {
+        //goes to player profile
+        else if (id == R.id.nav_player_profile) {
             UserProfileFragment fragment = new UserProfileFragment();
             android.support.v4.app.FragmentTransaction fragmentTransaction =
                     getSupportFragmentManager().beginTransaction();

@@ -34,9 +34,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView lblClickHere;
     private TextView lblForgotPassword;
     private String TAG;
+
+    //location id for the north foundation
     private int LOCATION_ID =2267;
 
     //progress dialog
+    //these are the little dialogs that pop up saying, "logging in"
     private ProgressDialog progressDialog;
 
     //defining firebaseauth object
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //the title that is set up top of the app
         setTitle("OU Indoor Login");
 
         //getting firebase auth object
@@ -68,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         progressDialog = new ProgressDialog(this);
 
         /***************************added bundle****************************************/
+        //gets the value of the email from the intent, if it's there, and puts it in the email field
+        //this is for when after a user registers
         Bundle emailData = getIntent().getExtras();
         if(emailData == null){
             return;
@@ -78,9 +84,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         /***************************added bundle***************************************/
     }
 
-
+    //signs the user in
     public void userSignIn(){
 
+        //get the text from both text fields
         String email = txtEmail.getText().toString().trim();
         String password = txtPassword.getText().toString().trim();
 
@@ -108,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //gets current user
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
+                        //checks to see if the user is registered
                         if(!task.isSuccessful()){
                             try{
                                 throw task.getException();
@@ -116,13 +124,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             } catch (Exception e) {
                                 Log.e(TAG, e.getMessage());
                             }
-                        } else if (user.isEmailVerified() && task.isSuccessful()) {
+                        }
+
+                        //checks to see if the user's email is verified
+                        else if (user.isEmailVerified() && task.isSuccessful()) {
                             if (task.isSuccessful()) {
                                 //start the homepage activity
                                 startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
                                 finish();
                             }
-                        } else if (!user.isEmailVerified()) {
+                        }
+
+                        //if the email is not verified make a toast
+                        else if (!user.isEmailVerified()) {
                             Toast.makeText(MainActivity.this, "Please verify your email", Toast.LENGTH_SHORT).show();
                         }
 
@@ -137,24 +151,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(view == btnSignIn){
             userSignIn();
 
+
+        }
+
         //if the lblClickHere is clicked it directs the user to the registration activity
-        }else if(view == lblClickHere){
+        else if(view == lblClickHere){
             Intent myIntent = new Intent(this, RegistrationActivity.class);
             startActivity(myIntent);
-        }else if (view == lblForgotPassword){
+        }
+
+        //if the lblForgotPassword is clicked it directs the user to an activity where they can change their password
+        else if (view == lblForgotPassword){
             Intent myIntent = new Intent(this, ForgotPasswordActivity.class);
             startActivity(myIntent);
         }
     }
 
+    //initialization of the navigine engine and attempts to load the location.
     class InitTask extends AsyncTask<Void, Void, Boolean> {
         private String  mErrorMsg = null;
         @Override protected Boolean doInBackground(Void... params){
+
+            //checks to see if navigine is initialized
             if (!initialize(getApplicationContext())){
                 mErrorMsg = "Error downloading location Navigine!";
+                //prints to logcat upon failure
                 Log.e(TAG, mErrorMsg);
                 return Boolean.FALSE;
             }
+            //prints to logcat upon init
             Log.d(TAG, "Initialized!");
 
             if (!NavigineSDK.loadLocation(LOCATION_ID, 30)){
@@ -162,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.e(TAG, mErrorMsg);
                 return Boolean.FALSE;
             }
+
             return Boolean.TRUE;
         }
     }
