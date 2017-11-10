@@ -6,11 +6,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -41,28 +39,20 @@ public class NavigineFragment extends Fragment {
     //initilization of everything
     private static NavigationThread mNavigation = null;
     private static String USER_HASH = "3255-7212-207D-BFE1";
-    private String LOCATION_NAME = "N Foundation";
     private int LOCATION_ID =2267;
     private final int permission = 1334;
     private LocationView mLocationView;
     private Location mLocation;
     private SubLocation subLoc;
-    private boolean mMapLoaded;
+    private boolean mMap;
     private int mCurrentSubLocationIndex;
     private android.os.Handler mHandler = new android.os.Handler();
-    private long mErrorMessageTime = 0;
     private DeviceInfo mDeviceInfo;
-    private final int ERROR_MESSAGE_TIMEOUT = 5000;
-    private NavigineFragment mNav;
     private Bitmap venueBitmap;
-
-    public static float displayWidth;
-    public static float displayHeight;
     public static float  displayDensity;
-    public static float displayHeightDP;
-    public static float displayWidthDP;
 
     @Override
+    //loads all of this into our activity navigation drawer frame
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_navigine, container, false);
@@ -72,10 +62,10 @@ public class NavigineFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mNav = new NavigineFragment();
+        //grabs the grizzly head resource
+        venueBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.grizzly);
 
-        venueBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.elm_venue);
-
+        //checks the permissions granted, obviously
         checkPermissions();
 
         //Loads map from server
@@ -84,14 +74,13 @@ public class NavigineFragment extends Fragment {
         //initializes locationview...it's what views the map
         mLocationView = getActivity().findViewById(R.id.navigation_location_view);
 
-        mLocationView.setBackgroundColor(0xffebebeb);
-
         //setting up the listeners for the mapview
         mLocationView.setListener(
                 new LocationView.Listener(){
 
                     //will handle Dijkstra point placement
                     @Override public void onClick(float x, float y){handleClick(x, y);}
+                    //may make this display the names of the venues
                     @Override public void onLongClick(float x, float y){handleOnLockClick(x, y);}
                     @Override public void onDoubleClick(float x, float y){}
 
@@ -110,7 +99,6 @@ public class NavigineFragment extends Fragment {
         );
 
         loadMap();
-        loadSubLocation(mCurrentSubLocationIndex);
     }
 
     private void drawVenues(Canvas canvas) {
@@ -118,21 +106,18 @@ public class NavigineFragment extends Fragment {
         if (mLocation == null || mCurrentSubLocationIndex < 0)
             return;
 
-        final float textSize  = 16 * displayDensity;
         final float venueSize = 0.1f * displayDensity;
-        final int venueColor = Color.argb(255, 0xCD, 0x88, 0x50); // Venue color
 
         Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        paint.setStrokeWidth(0);
-        paint.setTextSize(textSize);
-        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 
-        for(int i = 0; i < subLoc.venues.size(); ++i)
-        {
+        for(int i = 0; i < subLoc.venues.size(); ++i) {
+
             Venue venue = subLoc.venues.get(i);
-            if (venue.subLocation != subLoc.id)
+
+            if (venue.subLocation != subLoc.id) {
                 continue;
+
+            }
 
             final PointF P = mLocationView.getScreenCoordinates(venue.x, venue.y);
             final float x0 = P.x - venueSize/2;
@@ -144,7 +129,7 @@ public class NavigineFragment extends Fragment {
     }
 
     private void handleOnLockClick(float x, float y) {
-        //TODO: see if you want to implement this, might not.
+        //TODO: Might use this for seeing venue names on long click of venues
 
     }
 
@@ -322,11 +307,7 @@ public class NavigineFragment extends Fragment {
 
         //get parameters of the phone's screen
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        displayWidth = metrics.widthPixels;
-        displayHeight = metrics.heightPixels;
         displayDensity = metrics.densityDpi;
-        displayHeightDP = displayHeight / displayDensity;
-        displayWidthDP = displayWidth / displayDensity;
 
         //gets the navigation thread instance
         mNavigation = NavigineSDK.getNavigation();
@@ -336,21 +317,22 @@ public class NavigineFragment extends Fragment {
 
     //loads the map
     private boolean loadMap(){
-        if (mMapLoaded){
+        //checks if map already loaded
+        if (mMap){
             return false;
         }
 
-        mMapLoaded = true;
-
-        //failure upon initialization
-        if (mNavigation == null) {
-            Log.e(TAG, "Can't load map! Navigine SDK is not available!");
-            return false;
-        }
+        mMap = true;
 
         //gets the location from the navigation thread
         mLocation = mNavigation.getLocation();
         mCurrentSubLocationIndex = -1;
+
+        //failure upon initialization
+        if (mNavigation == null) {
+            Log.e(TAG, "Navigine SDK did not initialize. Can't load the map.");
+            return false;
+        }
 
         //checks if there's a location available
         if (mLocation == null) {
@@ -391,7 +373,7 @@ public class NavigineFragment extends Fragment {
             return false;
         }
 
-        //Checks to see if there's a location || if the CurrentLocationIndex is < 0 || if the sublocation is lt or eq to the CurrentLocationIndex
+        //Checks to see if there's a location in navi thread || if the CurrentLocationIndex is < 0 then no current location || if the sublocation is lt or eq to the CurrentLocationIndex no sublocation
         if (mLocation == null || index < 0 || index >= mLocation.subLocations.size()) {
             return false;
         }
@@ -412,26 +394,17 @@ public class NavigineFragment extends Fragment {
         mCurrentSubLocationIndex = index;
 
         //seperate thread to load sublocation to UI
+        //Note: thread() does not update the UI only the Handler does
         mHandler.post(mRunnable);
         return true;
     }
 
     final Runnable mRunnable =
-            new Runnable()
-    {
-        public void run()
-        {
-            if (mNavigation == null)
-            {
+            new Runnable() {
+        public void run() {
+            if (mNavigation == null) {
                 Log.d(TAG, "Navigation is not supported on this device.");
                 return;
-            }
-
-            final long timeNow = NavigineSDK.currentTimeMillis();
-
-            if (mErrorMessageTime > 0 && timeNow > mErrorMessageTime + ERROR_MESSAGE_TIMEOUT)
-            {
-                mErrorMessageTime = 0;
             }
 
             //check in the location is loaded
@@ -444,8 +417,10 @@ public class NavigineFragment extends Fragment {
             SubLocation subLoc = mLocation.subLocations.get(mCurrentSubLocationIndex);
 
             //Starts navigation
-            if (mNavigation.getMode() == NavigationThread.MODE_IDLE)
+            if (mNavigation.getMode() == NavigationThread.MODE_IDLE) {
                 mNavigation.setMode(NavigationThread.MODE_NORMAL);
+
+            }
 
             //gets the device info from the navigation thread.
             mDeviceInfo = mNavigation.getDeviceInfo();
@@ -468,10 +443,12 @@ public class NavigineFragment extends Fragment {
                 //starts navigation if successful
                 NavigineSDK.getNavigation().setMode(NavigationThread.MODE_NORMAL);
 
-            }else{
+            }
+
+            else{
 
                 //error downloading location
-                Log.d(TAG, "Error downloading location!");
+                Log.d(TAG, "Error downloading location.");
 
             }
         }

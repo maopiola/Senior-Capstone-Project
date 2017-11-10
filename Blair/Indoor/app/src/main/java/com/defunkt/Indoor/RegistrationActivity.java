@@ -105,11 +105,15 @@ public class RegistrationActivity extends AppCompatActivity implements View.OnCl
             }
         }
 
+        if (!email.contains("@oakland.edu")){
+            Toast.makeText(this, "Email has to be an Oakland email.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (!password.equals(cPassword)) {
             Toast.makeText(this, "The passwords do not match", Toast.LENGTH_SHORT).show();
             return;
         }
-
 
 
         //addOnCompleteListener listens to see if the registration is complete
@@ -145,8 +149,6 @@ public class RegistrationActivity extends AppCompatActivity implements View.OnCl
         createUser(user.getUid());
     }
 
-    // TODO: Need to figure out how to write user data to database. It's not adding.
-    // This will be needed to save the user's routes. 9/25/17
     private void createUser(String uid) {
         User user = new User(txtEmail.getText().toString());
         mDatabase.child(uid).setValue(user);
