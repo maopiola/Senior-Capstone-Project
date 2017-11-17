@@ -6,7 +6,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
@@ -23,14 +25,19 @@ import android.view.ViewGroup;
 
 import com.navigine.naviginesdk.DeviceInfo;
 import com.navigine.naviginesdk.Location;
+import com.navigine.naviginesdk.LocationPoint;
 import com.navigine.naviginesdk.LocationView;
 import com.navigine.naviginesdk.NavigationThread;
 import com.navigine.naviginesdk.NavigineSDK;
+import com.navigine.naviginesdk.RoutePath;
 import com.navigine.naviginesdk.SubLocation;
 import com.navigine.naviginesdk.Venue;
+import com.navigine.naviginesdk.Zone;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.navigine.naviginesdk.NavigineSDK.TAG;
 
@@ -50,6 +57,10 @@ public class NavigineFragment extends Fragment {
     private DeviceInfo mDeviceInfo;
     private Bitmap venueBitmap;
     public static float  displayDensity;
+    private TimerTask     mTimerTask                = null;
+    private Timer mTimer                    = new Timer();
+    private static final int      UPDATE_TIMEOUT          = 100;  // milliseconds
+    private static final int      ADJUST_TIMEOUT          = 5000; // milliseconds
 
     @Override
     //loads all of this into our activity navigation drawer frame
@@ -93,18 +104,77 @@ public class NavigineFragment extends Fragment {
                     //this will handle drawing the route of the Dijkstra
                     @Override public void onDraw(Canvas canvas){
                         drawVenues(canvas);
+                        drawDevice(canvas);
+                        drawZones(canvas);
 
                     }
                 }
         );
 
         loadMap();
+
+        // Starting interface updates
+        mTimerTask = new TimerTask()
+        {
+            @Override public void run()
+            {
+                mHandler.post(mRunnable);
+            }
+        };
+        mTimer.schedule(mTimerTask, UPDATE_TIMEOUT, UPDATE_TIMEOUT);
     }
+
+    public void drawZones(Canvas canvas){
+        // Check if NavigineSDK is initialized
+        NavigationThread navigation = NavigineSDK.getNavigation();
+        if (navigation == null)
+            return;
+
+        // Check if location is loaded
+        Location location = navigation.getLocation();
+        if (location == null)
+            return;
+
+        if (subLoc == null)
+            return;
+
+        // Preparing paints
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        for(int i = 0; i < subLoc.zones.size(); ++i)
+        {
+            Zone Z = subLoc.zones.get(i);
+            if (Z.points.size() < 3)
+                continue;
+
+            Path path = new Path();
+            final LocationPoint P0 = Z.points.get(0);
+            final PointF        Q0 = mLocationView.getScreenCoordinates(P0);
+            path.moveTo(Q0.x, Q0.y);
+
+            for(int j = 0; j < Z.points.size(); ++j)
+            {
+                final LocationPoint P = Z.points.get((j + 1) % Z.points.size());
+                final PointF        Q = mLocationView.getScreenCoordinates(P);
+                path.lineTo(Q.x, Q.y);
+            }
+
+            int zoneColor = Color.parseColor(Z.color);
+            int red       = (zoneColor >> 16) & 0xff;
+            int green     = (zoneColor >> 8 ) & 0xff;
+            int blue      = (zoneColor >> 0 ) & 0xff;
+            paint.setColor(Color.argb(127, red, green, blue));
+            canvas.drawPath(path, paint);
+        }
+    }
+
 
     private void drawVenues(Canvas canvas) {
 
-        if (mLocation == null || mCurrentSubLocationIndex < 0)
+        if (mLocation == null || mCurrentSubLocationIndex < 0) {
             return;
+        }
 
         final float venueSize = 0.1f * displayDensity;
 
@@ -126,6 +196,61 @@ public class NavigineFragment extends Fragment {
             final float y1 = P.y + venueSize/2;
             canvas.drawBitmap(venueBitmap, null, new RectF(x0, y0, x1, y1), paint);
         }
+    }
+
+    private void drawDevice(Canvas canvas){
+        if (mLocation == null || mCurrentSubLocationIndex < 0){
+            return;
+        }
+
+        if (mDeviceInfo.errorCode != 0){
+            return;
+        }
+
+        if (subLoc == null){
+            return;
+        }
+
+        final int solidColor  = Color.argb(255, 64,  163, 205); // Light-blue color
+        final int circleColor = Color.argb(127, 64,  163, 205); // Semi-transparent light-blue color
+
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+
+        if (mDeviceInfo.paths != null && mDeviceInfo.paths.size() > 0){
+            RoutePath path = mDeviceInfo.paths.get(0);
+            if (path.points.size() >= 2){
+                paint.setColor(solidColor);
+                for(int i = 1; i < path.points.size(); ++i){
+                    LocationPoint P = path.points.get(i-1);
+                    LocationPoint Q = path.points.get(i);
+
+                    paint.setStrokeWidth(3*displayDensity);
+                    PointF P1 = mLocationView.getScreenCoordinates(P);
+                    PointF Q1 = mLocationView.getAbsCoordinates(Q);
+                    canvas.drawLine(P1.x, P1.y, Q1.x, Q1.y, paint);
+                }
+            }
+        }
+
+        paint.setStrokeCap(Paint.Cap.BUTT);
+
+        final float x = mDeviceInfo.x;
+        final float y = mDeviceInfo.y;
+        final float r = mDeviceInfo.r;
+        final float radius = mLocationView.getScreenLengthX(r);
+        final float radius1 = .2f *displayDensity;
+
+        PointF O = mLocationView.getScreenCoordinates(x, y);
+
+        paint.setStrokeWidth(0);
+        paint.setColor(circleColor);
+        canvas.drawCircle(O.x, O.y, radius, paint);
+
+        paint.setColor(solidColor);
+        canvas.drawCircle(O.x, O.y, radius1, paint);
+
     }
 
     private void handleOnLockClick(float x, float y) {
