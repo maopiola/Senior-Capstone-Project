@@ -27,4 +27,9 @@
     <string name="emailWelcome">Email</string>
     <string name="welcome">Welcome</string>
     <string name="map_icon">map icon</string>
+    <string name="dispay_name">Dispay Name</string>
+    <string name="cancel">CANCEL</string>
+    <string name="confirm">CONFIRM</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="passwordD">password</string>
 </resources>

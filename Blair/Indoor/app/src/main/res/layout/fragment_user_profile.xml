@@ -81,7 +81,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
-        android:text="What to Update Your Password?"
+        android:text="Want to Update Your Password?"
         android:textColor="@android:color/holo_blue_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.502"
@@ -94,30 +94,18 @@
         android:id="@+id/lblUpdateEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="202dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginTop="31dp"
-        android:text="What to Update Your Email?"
+        android:text="Want to Update Your Email?"
         android:textColor="@android:color/holo_blue_dark"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lblUpdateName"
-        app:layout_constraintVertical_bias="0.027" />
-
-    <TextView
-        android:id="@+id/lblUpdateName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Want to Update Your Name?"
-        android:textColor="@android:color/holo_blue_dark"
-        android:layout_marginTop="99dp"
-        app:layout_constraintTop_toBottomOf="@+id/lblEmailP"
-        android:layout_marginRight="7dp"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintLeft_toLeftOf="parent" />
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/txtEmailP"
+        app:layout_constraintVertical_bias="0.935" />
 
     <EditText
         android:id="@+id/txtEmailP"
@@ -130,12 +118,11 @@
         android:ems="10"
         android:inputType="text"
         app:layout_constraintBottom_toTopOf="@+id/btnSubmitP"
-        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintHorizontal_bias="0.067"
         app:layout_constraintLeft_toRightOf="@+id/lblProfileEmail"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lblDisplayP"
-        tools:layout_editor_absoluteY="133dp"
-        app:layout_constraintVertical_bias="0.333" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <Button
         android:id="@+id/btnSubmitP"
@@ -147,9 +134,9 @@
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/lblUpdateName"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="8dp"
-        app:layout_constraintVertical_bias="0.894" />
+        app:layout_constraintVertical_bias="0.463"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

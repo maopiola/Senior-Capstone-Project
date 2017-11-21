@@ -73,6 +73,8 @@ public class NavigineFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        getActivity().setTitle("OU Indoors: Maps");
+
         //grabs the grizzly head resource
         venueBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.grizzly);
 

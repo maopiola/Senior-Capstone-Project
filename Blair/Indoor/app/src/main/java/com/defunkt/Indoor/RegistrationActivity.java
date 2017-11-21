@@ -28,6 +28,7 @@ public class RegistrationActivity extends AppCompatActivity implements View.OnCl
 
     private Button btnRegister;
     private TextView lblSignIn;
+    private EditText txtName;
     private EditText txtEmail;
     private EditText txtPassword;
     private EditText txtPasswordConfirm;
@@ -43,13 +44,15 @@ public class RegistrationActivity extends AppCompatActivity implements View.OnCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
 
-        setTitle("OU Indoor Registration");
+        setTitle("OU Indoor: Registration");
 
         progressDialog= new ProgressDialog(this);
 
         btnRegister = (Button)findViewById(R.id.btnRegister);
 
         lblSignIn = (TextView)findViewById(R.id.lblSignIn);
+
+        txtName = (EditText)findViewById(R.id.txtName);
 
         txtEmail = (EditText)findViewById(R.id.txtREmail);
 
@@ -62,7 +65,7 @@ public class RegistrationActivity extends AppCompatActivity implements View.OnCl
         //initializes our firebase authentication system
         firebaseAuth = FirebaseAuth.getInstance();
 
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        mDatabase = FirebaseDatabase.getInstance().getReference("Users");
 
     }
 
@@ -115,9 +118,6 @@ public class RegistrationActivity extends AppCompatActivity implements View.OnCl
             return;
         }
 
-
-        //addOnCompleteListener listens to see if the registration is complete
-
         progressDialog.setMessage("Registering User");
         progressDialog.show();
 
@@ -150,7 +150,7 @@ public class RegistrationActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void createUser(String uid) {
-        User user = new User(txtEmail.getText().toString());
+        User user = new User(txtEmail.getText().toString(), txtName.getText().toString());
         mDatabase.child(uid).setValue(user);
 
     }
@@ -186,6 +186,7 @@ public class RegistrationActivity extends AppCompatActivity implements View.OnCl
         //if btnResgister is clicked it sends them to the registration activity
         if(view == btnRegister){
             registerUser(view);
+
             //if the lbl is clicked it sends them back to the login screen
         } else{
             Intent intent = new Intent(this, MainActivity.class);

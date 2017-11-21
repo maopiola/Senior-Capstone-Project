@@ -27,6 +27,7 @@ public class HomePageActivity extends AppCompatActivity
     //firebase auth object
     private FirebaseAuth firebaseAuth;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +72,9 @@ public class HomePageActivity extends AppCompatActivity
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
     }
+
 
     @Override
     public void onBackPressed() {
@@ -130,7 +133,7 @@ public class HomePageActivity extends AppCompatActivity
             fragmentTransaction.commit();
         }
         //if the map is selected inside the drop down it goes to the map screen
-        else if (id == R.id.nav_Map) {
+        else if (id == R.id.map) {
 
         MapFragment fragment = new MapFragment();
         android.support.v4.app.FragmentTransaction fragmentTransaction =

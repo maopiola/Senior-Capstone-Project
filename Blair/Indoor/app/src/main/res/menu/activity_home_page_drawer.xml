@@ -9,10 +9,6 @@
         <item android:title="Personal Information">
             <menu>
                 <item
-                    android:id="@+id/nav_player_standings"
-                    android:icon="@drawable/ic_menu_myplaces"
-                    android:title="My Routes" />
-                <item
                     android:id="@+id/nav_player_profile"
                     android:icon="@drawable/ic_menu_preferences"
                     android:title="My Profile" />
@@ -21,13 +17,9 @@
         <item android:title="Navigation">
             <menu>
                 <item
-                    android:id="@+id/nav_Map"
-                    android:icon="@drawable/ic_menu_agenda"
-                    android:title="Map_Google"/>
-                <item
                     android:id="@+id/navigine"
                     android:icon="@drawable/ic_menu_agenda"
-                    android:title="Map_Navigine"/>
+                    android:title="Maps"/>
             </menu>
         </item>
     </group>
