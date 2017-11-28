@@ -65,6 +65,7 @@ public class NavigineFragment extends Fragment {
     private Venue mTargetVenue;
     private Venue mSelectedVenue;
     private RectF mSelectedVenueRect;
+    private View mBackView;
 
     @Override
     //loads all of this into our activity navigation drawer frame
@@ -81,6 +82,9 @@ public class NavigineFragment extends Fragment {
 
         //grabs the grizzly head resource
         venueBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.grizzly);
+
+        mBackView = getActivity().findViewById(R.id.back_view);
+        mBackView.setVisibility(View.INVISIBLE);
 
         //checks the permissions granted, obviously
         checkPermissions();
@@ -161,7 +165,7 @@ public class NavigineFragment extends Fragment {
         }
     }
 
-    private Venue getVenue(float x, float y){
+    /*private Venue getVenue(float x, float y){
 
         Venue v0 = null;
         float d0 = 1000.0f;
@@ -180,24 +184,22 @@ public class NavigineFragment extends Fragment {
         }
 
         return v0;
-    }
+    }*/
 
-    private void cancelVenue(){
+    /*private void cancelVenue(){
 
         mSelectedVenue = null;
         mHandler.post(mRunnable);
-    }
+    }*/
 
     private void makePin(PointF P) {
 
-        if (mTargetPoint != null || mTargetVenue != null)
-        {
+        if (mTargetPoint != null || mTargetVenue != null) {
             Log.e(TAG, "Unable to make route. You must cancel previous route first.");
             return;
         }
 
-        if (mDeviceInfo.errorCode != 0)
-        {
+        if (mDeviceInfo.errorCode != 0) {
             Log.e(TAG, "Unable to make route. Navigation is unavailable.");
             return;
         }
@@ -220,7 +222,7 @@ public class NavigineFragment extends Fragment {
         final int circleColor = Color.argb(127, 64, 163, 205);  // Semi-transparent light-blue color
         final int arrowColor  = Color.argb(255, 255, 255, 255); // White color
         final float dp        = displayDensity;
-        final float textSize  = 16 * dp;
+        final float textSize  = 0.05f * dp;
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -230,22 +232,24 @@ public class NavigineFragment extends Fragment {
         // Draws pinpoint
         if (mPinPoint != null && mPinPoint.subLocation == subLoc.id) {
             final PointF T = mLocationView.getScreenCoordinates(mPinPoint);
-            final float tRadius = 10 * dp;
+            final float tRadius = 0.05f * dp;
 
+            //make route bar
             paint.setARGB(255, 0, 0, 0);
-            paint.setStrokeWidth(4 * dp);
+            paint.setStrokeWidth(1 * dp);
             canvas.drawLine(T.x, T.y, T.x, T.y - 3 * tRadius, paint);
 
+            //pinpoint
             paint.setColor(solidColor);
             paint.setStrokeWidth(0);
-            canvas.drawCircle(T.x, T.y - 3 * tRadius, tRadius, paint);
+            canvas.drawCircle(T.x, T.y - 3 * tRadius, 0.5f*tRadius, paint);
 
             final String text = "Make route";
             final float textWidth = paint.measureText(text);
-            final float h  = 50 * dp;
-            final float w  = Math.max(120 * dp, textWidth + h/2);
+            final float h  = 0.5f * dp;
+            final float w  = Math.max(1 * dp, textWidth + h/2);
             final float x0 = T.x;
-            final float y0 = T.y - 75 * dp;
+            final float y0 = T.y - 0.05f * dp;
 
             mPinPointRect.set(x0 - w/2, y0 - h/2, x0 + w/2, y0 + h/2);
 
@@ -259,10 +263,11 @@ public class NavigineFragment extends Fragment {
         //draws target point
         if (mTargetPoint != null && mTargetPoint.subLocation == subLoc.id) {
             final PointF T = mLocationView.getScreenCoordinates(mTargetPoint);
-            final float tRadius = 10 * dp;
+            final float tRadius = 0.025f * dp;
 
             paint.setARGB(255, 0, 0, 0);
-            paint.setStrokeWidth(4 * dp);
+            paint.setStrokeWidth(0.25f * dp);
+            //T is the coordinates of the point that we are making
             canvas.drawLine(T.x, T.y, T.x, T.y - 3 * tRadius, paint);
 
             paint.setColor(solidColor);
@@ -299,7 +304,7 @@ public class NavigineFragment extends Fragment {
                     LocationPoint P = path.points.get(i-1);
                     LocationPoint Q = path.points.get(i);
 
-                    paint.setStrokeWidth(3*displayDensity);
+                    paint.setStrokeWidth(0.05f*displayDensity);
                     PointF P1 = mLocationView.getScreenCoordinates(P);
                     PointF Q1 = mLocationView.getAbsCoordinates(Q);
                     canvas.drawLine(P1.x, P1.y, Q1.x, Q1.y, paint);
@@ -321,10 +326,42 @@ public class NavigineFragment extends Fragment {
 
     }
 
+    public void onMakeRoute(View v) {
+        if (mNavigation == null)
+            return;
+
+        if (mPinPoint == null)
+            return;
+
+        mTargetPoint  = mPinPoint;
+        mTargetVenue  = null;
+        mPinPoint     = null;
+        mPinPointRect = null;
+
+        mNavigation.setTarget(mTargetPoint);
+        mBackView.setVisibility(View.VISIBLE);
+        mHandler.post(mRunnable);
+    }
+
+    public void onCancelRoute(View v)
+    {
+        if (mNavigation == null)
+            return;
+
+        mTargetPoint  = null;
+        mTargetVenue  = null;
+        mPinPoint     = null;
+        mPinPointRect = null;
+
+        mNavigation.cancelTargets();
+        mBackView.setVisibility(View.GONE);
+        mHandler.post(mRunnable);
+    }
+
     private void handleOnLockClick(float x, float y) {
 
         makePin(mLocationView.getAbsCoordinates(x, y));
-        cancelVenue();
+        //cancelVenue();
     }
 
     private void handleClick(float x, float y) {
@@ -336,6 +373,7 @@ public class NavigineFragment extends Fragment {
                 mPinPoint     = null;
                 mPinPointRect = null;
                 mNavigation.setTarget(mTargetPoint);
+                mBackView.setVisibility(View.VISIBLE);
                 return;
             }
             cancelPin();
@@ -343,18 +381,18 @@ public class NavigineFragment extends Fragment {
         }
 
         if (mSelectedVenue != null) {
-            if (mSelectedVenueRect != null && mSelectedVenueRect.contains(x, y))
-            {
+            if (mSelectedVenueRect != null && mSelectedVenueRect.contains(x, y)) {
                 mTargetVenue = mSelectedVenue;
                 mTargetPoint = null;
                 mNavigation.setTarget(new LocationPoint(mLocation.id, subLoc.id, mTargetVenue.x, mTargetVenue.y));
+                mBackView.setVisibility(View.VISIBLE);
             }
-            cancelVenue();
+            //cancelVenue();
             return;
         }
 
         //Venue selection
-        mSelectedVenue = getVenue(x, y);
+       // mSelectedVenue = getVenue(x, y);
         mSelectedVenueRect = new RectF();
 
         mHandler.post(mRunnable);
@@ -646,6 +684,11 @@ public class NavigineFragment extends Fragment {
                 mNavigation.setMode(NavigationThread.MODE_NORMAL);
 
             }
+
+            if (mTargetPoint != null || mTargetVenue != null)
+                mBackView.setVisibility(View.VISIBLE);
+            else
+                mBackView.setVisibility(View.GONE);
 
             //gets the device info from the navigation thread.
             mDeviceInfo = mNavigation.getDeviceInfo();
