@@ -32,4 +32,11 @@
     <string name="confirm">CONFIRM</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="passwordD">password</string>
+    <string name="display_name">Display Name:</string>
+    <string name="emailP">Email:</string>
+    <string name="submit">Submit</string>
+    <string name="want_to_update_your_email">Want to Update Your Email?</string>
+    <string name="want_to_update_your_password">Want to Update Your Password?</string>
+    <string name="displayname">displayName</string>
+    <string name="emailP2">email</string>
 </resources>

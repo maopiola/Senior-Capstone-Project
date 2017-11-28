@@ -8,9 +8,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -32,7 +32,6 @@ import com.navigine.naviginesdk.NavigineSDK;
 import com.navigine.naviginesdk.RoutePath;
 import com.navigine.naviginesdk.SubLocation;
 import com.navigine.naviginesdk.Venue;
-import com.navigine.naviginesdk.Zone;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,10 +56,15 @@ public class NavigineFragment extends Fragment {
     private DeviceInfo mDeviceInfo;
     private Bitmap venueBitmap;
     public static float  displayDensity;
-    private TimerTask     mTimerTask                = null;
-    private Timer mTimer                    = new Timer();
-    private static final int      UPDATE_TIMEOUT          = 100;  // milliseconds
-    private static final int      ADJUST_TIMEOUT          = 5000; // milliseconds
+    private TimerTask mTimerTask;
+    private Timer mTimer = new Timer();
+    private static final int UPDATE_TIMEOUT = 100;  // milliseconds
+    private LocationPoint mPinPoint;
+    private LocationPoint mTargetPoint;
+    private RectF mPinPointRect;
+    private Venue mTargetVenue;
+    private Venue mSelectedVenue;
+    private RectF mSelectedVenueRect;
 
     @Override
     //loads all of this into our activity navigation drawer frame
@@ -93,8 +97,10 @@ public class NavigineFragment extends Fragment {
 
                     //will handle Dijkstra point placement
                     @Override public void onClick(float x, float y){handleClick(x, y);}
+
                     //may make this display the names of the venues
                     @Override public void onLongClick(float x, float y){handleOnLockClick(x, y);}
+
                     @Override public void onDoubleClick(float x, float y){}
 
                     //this is unneccessary since it is handled but the android OS
@@ -103,11 +109,12 @@ public class NavigineFragment extends Fragment {
                     //this is also handled by android, might want to implement a different way
                     @Override public void onScroll(float x, float y){}
 
-                    //this will handle drawing the route of the Dijkstra
+                    //this will handle drawing the route of the Dijkstra, venues, points
                     @Override public void onDraw(Canvas canvas){
+
+                        drawPoints(canvas);
                         drawVenues(canvas);
                         drawDevice(canvas);
-                        drawZones(canvas);
 
                     }
                 }
@@ -125,52 +132,6 @@ public class NavigineFragment extends Fragment {
         };
         mTimer.schedule(mTimerTask, UPDATE_TIMEOUT, UPDATE_TIMEOUT);
     }
-
-    public void drawZones(Canvas canvas){
-        // Check if NavigineSDK is initialized
-        NavigationThread navigation = NavigineSDK.getNavigation();
-        if (navigation == null)
-            return;
-
-        // Check if location is loaded
-        Location location = navigation.getLocation();
-        if (location == null)
-            return;
-
-        if (subLoc == null)
-            return;
-
-        // Preparing paints
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-
-        for(int i = 0; i < subLoc.zones.size(); ++i)
-        {
-            Zone Z = subLoc.zones.get(i);
-            if (Z.points.size() < 3)
-                continue;
-
-            Path path = new Path();
-            final LocationPoint P0 = Z.points.get(0);
-            final PointF        Q0 = mLocationView.getScreenCoordinates(P0);
-            path.moveTo(Q0.x, Q0.y);
-
-            for(int j = 0; j < Z.points.size(); ++j)
-            {
-                final LocationPoint P = Z.points.get((j + 1) % Z.points.size());
-                final PointF        Q = mLocationView.getScreenCoordinates(P);
-                path.lineTo(Q.x, Q.y);
-            }
-
-            int zoneColor = Color.parseColor(Z.color);
-            int red       = (zoneColor >> 16) & 0xff;
-            int green     = (zoneColor >> 8 ) & 0xff;
-            int blue      = (zoneColor >> 0 ) & 0xff;
-            paint.setColor(Color.argb(127, red, green, blue));
-            canvas.drawPath(path, paint);
-        }
-    }
-
 
     private void drawVenues(Canvas canvas) {
 
@@ -200,7 +161,117 @@ public class NavigineFragment extends Fragment {
         }
     }
 
+    private Venue getVenue(float x, float y){
+
+        Venue v0 = null;
+        float d0 = 1000.0f;
+
+        for(int i = 0; i < subLoc.venues.size(); ++i){
+
+            Venue venue = subLoc.venues.get(i);
+            if (venue.subLocation != subLoc.id)
+                continue;
+            PointF P = mLocationView.getScreenCoordinates(venue.x, venue.y);
+            float d = Math.abs(x - P.x) + Math.abs(y - P.y);
+            if (d < 30.0f * displayDensity && d < d0){
+                v0 = new Venue(venue);
+                d0 = d;
+            }
+        }
+
+        return v0;
+    }
+
+    private void cancelVenue(){
+
+        mSelectedVenue = null;
+        mHandler.post(mRunnable);
+    }
+
+    private void makePin(PointF P) {
+
+        if (mTargetPoint != null || mTargetVenue != null)
+        {
+            Log.e(TAG, "Unable to make route. You must cancel previous route first.");
+            return;
+        }
+
+        if (mDeviceInfo.errorCode != 0)
+        {
+            Log.e(TAG, "Unable to make route. Navigation is unavailable.");
+            return;
+        }
+
+        mPinPoint = new LocationPoint(mLocation.id, subLoc.id, P.x, P.y);
+        mPinPointRect = new RectF();
+        mHandler.post(mRunnable);
+    }
+
+    private void cancelPin(){
+
+        mPinPoint = null;
+        mPinPointRect = null;
+        mHandler.post(mRunnable);
+    }
+
+    private void drawPoints(Canvas canvas) {
+
+        final int solidColor  = Color.argb(255, 64, 163, 205);  // Light-blue color
+        final int circleColor = Color.argb(127, 64, 163, 205);  // Semi-transparent light-blue color
+        final int arrowColor  = Color.argb(255, 255, 255, 255); // White color
+        final float dp        = displayDensity;
+        final float textSize  = 16 * dp;
+
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setTextSize(textSize);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
+        // Draws pinpoint
+        if (mPinPoint != null && mPinPoint.subLocation == subLoc.id) {
+            final PointF T = mLocationView.getScreenCoordinates(mPinPoint);
+            final float tRadius = 10 * dp;
+
+            paint.setARGB(255, 0, 0, 0);
+            paint.setStrokeWidth(4 * dp);
+            canvas.drawLine(T.x, T.y, T.x, T.y - 3 * tRadius, paint);
+
+            paint.setColor(solidColor);
+            paint.setStrokeWidth(0);
+            canvas.drawCircle(T.x, T.y - 3 * tRadius, tRadius, paint);
+
+            final String text = "Make route";
+            final float textWidth = paint.measureText(text);
+            final float h  = 50 * dp;
+            final float w  = Math.max(120 * dp, textWidth + h/2);
+            final float x0 = T.x;
+            final float y0 = T.y - 75 * dp;
+
+            mPinPointRect.set(x0 - w/2, y0 - h/2, x0 + w/2, y0 + h/2);
+
+            paint.setColor(solidColor);
+            canvas.drawRoundRect(mPinPointRect, h/2, h/2, paint);
+
+            paint.setARGB(255, 255, 255, 255);
+            canvas.drawText(text, x0 - textWidth/2, y0 + textSize/4, paint);
+        }
+
+        //draws target point
+        if (mTargetPoint != null && mTargetPoint.subLocation == subLoc.id) {
+            final PointF T = mLocationView.getScreenCoordinates(mTargetPoint);
+            final float tRadius = 10 * dp;
+
+            paint.setARGB(255, 0, 0, 0);
+            paint.setStrokeWidth(4 * dp);
+            canvas.drawLine(T.x, T.y, T.x, T.y - 3 * tRadius, paint);
+
+            paint.setColor(solidColor);
+            canvas.drawCircle(T.x, T.y - 3 * tRadius, tRadius, paint);
+        }
+    }
+
     private void drawDevice(Canvas canvas){
+
         if (mLocation == null || mCurrentSubLocationIndex < 0){
             return;
         }
@@ -214,7 +285,6 @@ public class NavigineFragment extends Fragment {
         }
 
         final int solidColor  = Color.argb(255, 64,  163, 205); // Light-blue color
-        final int circleColor = Color.argb(127, 64,  163, 205); // Semi-transparent light-blue color
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -224,6 +294,7 @@ public class NavigineFragment extends Fragment {
             RoutePath path = mDeviceInfo.paths.get(0);
             if (path.points.size() >= 2){
                 paint.setColor(solidColor);
+
                 for(int i = 1; i < path.points.size(); ++i){
                     LocationPoint P = path.points.get(i-1);
                     LocationPoint Q = path.points.get(i);
@@ -241,28 +312,55 @@ public class NavigineFragment extends Fragment {
         final float x = mDeviceInfo.x;
         final float y = mDeviceInfo.y;
         final float r = mDeviceInfo.r;
-        final float radius = mLocationView.getScreenLengthX(r);
-        final float radius1 = .2f *displayDensity;
+        final float radius = .2f *displayDensity;
 
         PointF O = mLocationView.getScreenCoordinates(x, y);
 
-        paint.setStrokeWidth(0);
-        paint.setColor(circleColor);
-        canvas.drawCircle(O.x, O.y, radius, paint);
-
         paint.setColor(solidColor);
-        canvas.drawCircle(O.x, O.y, radius1, paint);
+        canvas.drawCircle(O.x, O.y, radius, paint);
 
     }
 
     private void handleOnLockClick(float x, float y) {
-        //TODO: Might use this for seeing venue names on long click of venues
 
+        makePin(mLocationView.getAbsCoordinates(x, y));
+        cancelVenue();
     }
 
     private void handleClick(float x, float y) {
-        //TODO: set this up so the user can pick a point they want to travel to.
+
+        if (mPinPoint != null) {
+            if (mPinPointRect != null && mPinPointRect.contains(x, y)) {
+                mTargetPoint  = mPinPoint;
+                mTargetVenue  = null;
+                mPinPoint     = null;
+                mPinPointRect = null;
+                mNavigation.setTarget(mTargetPoint);
+                return;
+            }
+            cancelPin();
+            return;
+        }
+
+        if (mSelectedVenue != null) {
+            if (mSelectedVenueRect != null && mSelectedVenueRect.contains(x, y))
+            {
+                mTargetVenue = mSelectedVenue;
+                mTargetPoint = null;
+                mNavigation.setTarget(new LocationPoint(mLocation.id, subLoc.id, mTargetVenue.x, mTargetVenue.y));
+            }
+            cancelVenue();
+            return;
+        }
+
+        //Venue selection
+        mSelectedVenue = getVenue(x, y);
+        mSelectedVenueRect = new RectF();
+
+        mHandler.post(mRunnable);
     }
+
+
 
     //grabs all of the permissions that we need to run the app
     public boolean checkPermissions(){

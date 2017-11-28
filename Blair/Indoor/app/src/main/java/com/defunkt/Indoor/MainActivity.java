@@ -54,6 +54,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //the title that is set up top of the app
         setTitle("OU Indoor Login");
 
+        NavigineSDK.startLocationLoader(LOCATION_ID, false);
+
         //getting firebase auth object
         firebaseAuth = FirebaseAuth.getInstance();
 
