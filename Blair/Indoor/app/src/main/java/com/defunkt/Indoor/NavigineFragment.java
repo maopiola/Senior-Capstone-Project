@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -165,7 +166,7 @@ public class NavigineFragment extends Fragment {
         }
     }
 
-    /*private Venue getVenue(float x, float y){
+    private Venue getVenue(float x, float y){
 
         Venue v0 = null;
         float d0 = 1000.0f;
@@ -184,13 +185,13 @@ public class NavigineFragment extends Fragment {
         }
 
         return v0;
-    }*/
+    }
 
-    /*private void cancelVenue(){
+    private void cancelVenue(){
 
         mSelectedVenue = null;
         mHandler.post(mRunnable);
-    }*/
+    }
 
     private void makePin(PointF P) {
 
@@ -268,6 +269,7 @@ public class NavigineFragment extends Fragment {
             paint.setARGB(255, 0, 0, 0);
             paint.setStrokeWidth(0.25f * dp);
             //T is the coordinates of the point that we are making
+            //black line on pinpoint
             canvas.drawLine(T.x, T.y, T.x, T.y - 3 * tRadius, paint);
 
             paint.setColor(solidColor);
@@ -275,54 +277,65 @@ public class NavigineFragment extends Fragment {
         }
     }
 
-    private void drawDevice(Canvas canvas){
-
-        if (mLocation == null || mCurrentSubLocationIndex < 0){
-            return;
-        }
-
-        if (mDeviceInfo.errorCode != 0){
-            return;
-        }
-
-        if (subLoc == null){
-            return;
-        }
+    private void drawDevice(Canvas canvas) {
 
         final int solidColor  = Color.argb(255, 64,  163, 205); // Light-blue color
+        final int circleColor = Color.argb(127, 64,  163, 205); // Semi-transparent light-blue color
+        final float dp = displayDensity;
 
+        // Preparing paints
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         paint.setStrokeCap(Paint.Cap.ROUND);
 
-        if (mDeviceInfo.paths != null && mDeviceInfo.paths.size() > 0){
+        /// Drawing device path (if it exists)
+        if (mDeviceInfo.paths != null && mDeviceInfo.paths.size() > 0) {
             RoutePath path = mDeviceInfo.paths.get(0);
-            if (path.points.size() >= 2){
+            if (path.points.size() >= 2) {
                 paint.setColor(solidColor);
-
-                for(int i = 1; i < path.points.size(); ++i){
-                    LocationPoint P = path.points.get(i-1);
-                    LocationPoint Q = path.points.get(i);
-
-                    paint.setStrokeWidth(0.05f*displayDensity);
-                    PointF P1 = mLocationView.getScreenCoordinates(P);
-                    PointF Q1 = mLocationView.getAbsCoordinates(Q);
-                    canvas.drawLine(P1.x, P1.y, Q1.x, Q1.y, paint);
+                for(int j = 1; j < path.points.size(); ++j) {
+                    LocationPoint P = path.points.get(j-1);
+                    LocationPoint Q = path.points.get(j);
+                    Log.i(TAG, "These are the points P: " + P.x + ' ' + P.y + " Q: " + Q.x + ' ' + Q.y);
+                    if (P.subLocation == subLoc.id && Q.subLocation == subLoc.id) {
+                        paint.setStrokeWidth(0.05f * dp);
+                        PointF P1 = mLocationView.getScreenCoordinates(P);
+                        PointF Q1 = mLocationView.getScreenCoordinates(Q);
+                        canvas.drawLine(P1.x, P1.y, Q1.x, Q1.y, paint);
+                    }
                 }
             }
         }
 
         paint.setStrokeCap(Paint.Cap.BUTT);
 
-        final float x = mDeviceInfo.x;
-        final float y = mDeviceInfo.y;
-        final float r = mDeviceInfo.r;
-        final float radius = .2f *displayDensity;
+        final float x  = mDeviceInfo.x;
+        final float y  = mDeviceInfo.y;
+        final float r  = mDeviceInfo.r;
+        final float angle = mDeviceInfo.azimuth;
+        final float sinA = (float)Math.sin(angle);
+        final float cosA = (float)Math.cos(angle);
+        final float radius  = mLocationView.getScreenLengthX(r);
+        final float radius1 = .08f * dp;
 
         PointF O = mLocationView.getScreenCoordinates(x, y);
+        PointF P = new PointF(O.x - radius1 * sinA * 0.22f, O.y + radius1 * cosA * 0.22f);
+        PointF Q = new PointF(O.x + radius1 * sinA * 0.55f, O.y - radius1 * cosA * 0.55f);
 
-        paint.setColor(solidColor);
+        // Drawing transparent circle
+        paint.setStrokeWidth(0);
+        paint.setColor(circleColor);
         canvas.drawCircle(O.x, O.y, radius, paint);
+
+        // Drawing solid circle
+        paint.setColor(solidColor);
+        canvas.drawCircle(O.x, O.y, radius1, paint);
+
+        Path path = new Path();
+        path.moveTo(Q.x, Q.y);
+        path.lineTo(P.x, P.y);
+        path.lineTo(Q.x, Q.y);
+        canvas.drawPath(path, paint);
 
     }
 
@@ -343,8 +356,7 @@ public class NavigineFragment extends Fragment {
         mHandler.post(mRunnable);
     }
 
-    public void onCancelRoute(View v)
-    {
+    public void onCancelRoute(View v) {
         if (mNavigation == null)
             return;
 
@@ -361,7 +373,7 @@ public class NavigineFragment extends Fragment {
     private void handleOnLockClick(float x, float y) {
 
         makePin(mLocationView.getAbsCoordinates(x, y));
-        //cancelVenue();
+        cancelVenue();
     }
 
     private void handleClick(float x, float y) {
@@ -376,6 +388,7 @@ public class NavigineFragment extends Fragment {
                 mBackView.setVisibility(View.VISIBLE);
                 return;
             }
+
             cancelPin();
             return;
         }
@@ -387,7 +400,7 @@ public class NavigineFragment extends Fragment {
                 mNavigation.setTarget(new LocationPoint(mLocation.id, subLoc.id, mTargetVenue.x, mTargetVenue.y));
                 mBackView.setVisibility(View.VISIBLE);
             }
-            //cancelVenue();
+            cancelVenue();
             return;
         }
 
