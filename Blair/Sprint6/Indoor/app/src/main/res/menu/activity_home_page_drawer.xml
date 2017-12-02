@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="none">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_menu_send"
+            android:title="Home" />
+        <item android:title="Personal Information">
+            <menu>
+                <item
+                    android:id="@+id/nav_player_profile"
+                    android:icon="@drawable/ic_menu_preferences"
+                    android:title="My Profile" />
+            </menu>
+        </item>
+        <item android:title="Navigation">
+            <menu>
+                <item
+                    android:id="@+id/navigine"
+                    android:icon="@drawable/ic_menu_agenda"
+                    android:title="Maps"/>
+            </menu>
+        </item>
+    </group>
+</menu>

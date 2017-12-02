@@ -5,30 +5,33 @@
     android:layout_height="match_parent"
     tools:context=".NavigineFragment">
 
+    <LinearLayout
+        android:id="@+id/back_view"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="0dp"
+        android:background="#90aaaaaa"
+        android:onClick="onCancelRoute"
+        android:orientation="horizontal"
+        android:paddingBottom="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="35dp" />
+
     <com.navigine.naviginesdk.LocationView
         android:id="@+id/navigation_location_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_gravity="bottom"
+        android:layout_height="424dp"
         android:longClickable="false" />
 
     <Spinner
         android:id="@+id/spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <LinearLayout android:id="@+id/back_view"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|left"
-        android:layout_marginTop="0dp"
-        android:layout_marginLeft="0dp"
-        android:paddingTop="35dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingBottom="10dp"
-        android:background="#90aaaaaa"
-        android:onClick="onCancelRoute"/>
+        android:layout_marginTop="55dp" />
 
 
 </FrameLayout>

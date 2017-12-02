@@ -23,6 +23,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.navigine.naviginesdk.DeviceInfo;
 import com.navigine.naviginesdk.Location;
@@ -39,9 +42,10 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static android.R.attr.textSize;
 import static com.navigine.naviginesdk.NavigineSDK.TAG;
 
-public class NavigineFragment extends Fragment {
+public class NavigineFragment extends Fragment implements DrawFragment {
 
     //initilization of everything
     private static NavigationThread mNavigation = null;
@@ -59,7 +63,7 @@ public class NavigineFragment extends Fragment {
     public static float  displayDensity;
     private TimerTask mTimerTask;
     private Timer mTimer = new Timer();
-    private static final int UPDATE_TIMEOUT = 100;  // milliseconds
+    private static final int UPDATE_TIMEOUT = 50;  // milliseconds
     private LocationPoint mPinPoint;
     private LocationPoint mTargetPoint;
     private RectF mPinPointRect;
@@ -67,6 +71,12 @@ public class NavigineFragment extends Fragment {
     private Venue mSelectedVenue;
     private RectF mSelectedVenueRect;
     private View mBackView;
+    private Spinner mSpinner;
+    private boolean touched = false;
+    private float xRec, yRec, mHeight, mWidth;
+    private Paint mPaint;
+    private Canvas mCan;
+
 
     @Override
     //loads all of this into our activity navigation drawer frame
@@ -86,15 +96,16 @@ public class NavigineFragment extends Fragment {
 
         mBackView = getActivity().findViewById(R.id.back_view);
         mBackView.setVisibility(View.INVISIBLE);
+        mSpinner = getActivity().findViewById(R.id.spinner);
+
+        //initializes locationview...it's what views the map
+        mLocationView = getActivity().findViewById(R.id.navigation_location_view);
 
         //checks the permissions granted, obviously
         checkPermissions();
 
         //Loads map from server
         (new LoadTask()).execute();
-
-        //initializes locationview...it's what views the map
-        mLocationView = getActivity().findViewById(R.id.navigation_location_view);
 
         //setting up the listeners for the mapview
         mLocationView.setListener(
@@ -106,7 +117,7 @@ public class NavigineFragment extends Fragment {
                     //may make this display the names of the venues
                     @Override public void onLongClick(float x, float y){handleOnLockClick(x, y);}
 
-                    @Override public void onDoubleClick(float x, float y){}
+                    @Override public void onDoubleClick(float x, float y){handleDoubleClick(x, y);}
 
                     //this is unneccessary since it is handled but the android OS
                     @Override public void onZoom(float ratio) {}
@@ -120,7 +131,7 @@ public class NavigineFragment extends Fragment {
                         drawPoints(canvas);
                         drawVenues(canvas);
                         drawDevice(canvas);
-
+                        drawRect(canvas);
                     }
                 }
         );
@@ -128,14 +139,83 @@ public class NavigineFragment extends Fragment {
         loadMap();
 
         // Starting interface updates
-        mTimerTask = new TimerTask()
-        {
+        mTimerTask = new TimerTask() {
             @Override public void run()
             {
                 mHandler.post(mRunnable);
             }
         };
         mTimer.schedule(mTimerTask, UPDATE_TIMEOUT, UPDATE_TIMEOUT);
+
+        ArrayList<String> spinnerArray = new ArrayList<String>();
+
+        for(int i = 0; i < subLoc.venues.size(); ++i){
+            Venue venue1 = subLoc.venues.get(i);
+
+            if (i == 0){
+                spinnerArray.add("Select a room");
+            }
+
+            spinnerArray.add(venue1.name);
+        }
+
+        ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, spinnerArray);
+        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(spinnerArrayAdapter);
+
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String venues = parent.getItemAtPosition(position).toString();
+
+                for (int i = 0; i < subLoc.venues.size(); ++i){
+
+                    Venue venue22 = subLoc.venues.get(i);
+
+                    if (venue22.name == venues){
+                    //TODO: set touched true boolean
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+
+        });
+    }
+
+    private void drawRect(Canvas canvas) {
+        //TODO: set if for touched boolean
+        mPaint = new Paint();
+
+        //mSelectedVenue =
+        RectF mRectangle = new RectF();
+        //if (mSelectedVenue != null) {
+
+        final float h  = 200000;
+        final float w  = 200000;
+        final float x0 = 2;
+        final float y0 = 2 - 50 * displayDensity;
+        mRectangle.set(x0 - w/2, y0 - h/2, x0 + w/2, y0 + h/2);
+
+        mPaint.setARGB(255, 64, 163, 205);
+        canvas.drawRoundRect(mRectangle, h/2, h/2, mPaint);
+
+        mPaint.setARGB(255, 255, 255, 255);
+        canvas.drawText("HELLLOOOOOOO", x0 - 20000/2, y0 + textSize/4, mPaint);
+        System.out.println("this is the rectangle stuff");
+    }
+
+    @Override
+    public void onDraw(Canvas canvas){
+
+        canvas.drawColor(Color.WHITE);
+        if(touched) {
+            canvas.drawRect(xRec, yRec, xRec+mWidth, yRec+mHeight, mPaint);
+            mHandler.post(mRunnable);
+        }
     }
 
     private void drawVenues(Canvas canvas) {
@@ -144,18 +224,13 @@ public class NavigineFragment extends Fragment {
             return;
         }
 
-        final float venueSize = 0.1f * displayDensity;
+        final float venueSize = 0.5f * displayDensity;
 
         Paint paint = new Paint();
 
         for(int i = 0; i < subLoc.venues.size(); ++i) {
 
             Venue venue = subLoc.venues.get(i);
-
-            if (venue.subLocation != subLoc.id) {
-                continue;
-
-            }
 
             final PointF P = mLocationView.getScreenCoordinates(venue.x, venue.y);
             final float x0 = P.x - venueSize/2;
@@ -164,21 +239,39 @@ public class NavigineFragment extends Fragment {
             final float y1 = P.y + venueSize/2;
             canvas.drawBitmap(venueBitmap, null, new RectF(x0, y0, x1, y1), paint);
         }
+
+        if (mSelectedVenue != null) {
+            final PointF T = mLocationView.getScreenCoordinates(mSelectedVenue.x, mSelectedVenue.y);
+            final float textWidth = paint.measureText(mSelectedVenue.name);
+
+            final float h  = 50 * displayDensity;
+            final float w  = Math.max(120 * displayDensity, textWidth + h/2);
+            final float x0 = T.x;
+            final float y0 = T.y - 50 * displayDensity;
+            mSelectedVenueRect.set(x0 - w/2, y0 - h/2, x0 + w/2, y0 + h/2);
+
+            paint.setARGB(255, 64, 163, 205);
+            canvas.drawRoundRect(mSelectedVenueRect, h/2, h/2, paint);
+
+            paint.setARGB(255, 255, 255, 255);
+            canvas.drawText(mSelectedVenue.name, x0 - textWidth/2, y0 + textSize/4, paint);
+
+        }
     }
 
     private Venue getVenue(float x, float y){
 
         Venue v0 = null;
-        float d0 = 1000.0f;
+        float d0 = 1000f;
 
         for(int i = 0; i < subLoc.venues.size(); ++i){
 
             Venue venue = subLoc.venues.get(i);
-            if (venue.subLocation != subLoc.id)
-                continue;
+
             PointF P = mLocationView.getScreenCoordinates(venue.x, venue.y);
             float d = Math.abs(x - P.x) + Math.abs(y - P.y);
-            if (d < 30.0f * displayDensity && d < d0){
+
+            if (d < 30f * displayDensity && d < d0){
                 v0 = new Venue(venue);
                 d0 = d;
             }
@@ -296,7 +389,6 @@ public class NavigineFragment extends Fragment {
                 for(int j = 1; j < path.points.size(); ++j) {
                     LocationPoint P = path.points.get(j-1);
                     LocationPoint Q = path.points.get(j);
-                    Log.i(TAG, "These are the points P: " + P.x + ' ' + P.y + " Q: " + Q.x + ' ' + Q.y);
                     if (P.subLocation == subLoc.id && Q.subLocation == subLoc.id) {
                         paint.setStrokeWidth(0.05f * dp);
                         PointF P1 = mLocationView.getScreenCoordinates(P);
@@ -339,41 +431,24 @@ public class NavigineFragment extends Fragment {
 
     }
 
-    public void onMakeRoute(View v) {
-        if (mNavigation == null)
-            return;
+    private void handleDoubleClick(float x, float y){
 
-        if (mPinPoint == null)
-            return;
+        //resets the pinpoint drop
+            mTargetPoint  = null;
+            mTargetVenue  = null;
+            mPinPoint     = null;
+            mPinPointRect = null;
 
-        mTargetPoint  = mPinPoint;
-        mTargetVenue  = null;
-        mPinPoint     = null;
-        mPinPointRect = null;
+            mNavigation.cancelTargets();
+            mBackView.setVisibility(View.GONE);
+            mHandler.post(mRunnable);
 
-        mNavigation.setTarget(mTargetPoint);
-        mBackView.setVisibility(View.VISIBLE);
-        mHandler.post(mRunnable);
-    }
-
-    public void onCancelRoute(View v) {
-        if (mNavigation == null)
-            return;
-
-        mTargetPoint  = null;
-        mTargetVenue  = null;
-        mPinPoint     = null;
-        mPinPointRect = null;
-
-        mNavigation.cancelTargets();
-        mBackView.setVisibility(View.GONE);
-        mHandler.post(mRunnable);
     }
 
     private void handleOnLockClick(float x, float y) {
 
-        makePin(mLocationView.getAbsCoordinates(x, y));
-        cancelVenue();
+            makePin(mLocationView.getAbsCoordinates(x, y));
+            cancelVenue();
     }
 
     private void handleClick(float x, float y) {
@@ -393,20 +468,22 @@ public class NavigineFragment extends Fragment {
             return;
         }
 
+        //Venue selection
+        mSelectedVenue = getVenue(x, y);
+        mSelectedVenueRect = new RectF();
+
         if (mSelectedVenue != null) {
             if (mSelectedVenueRect != null && mSelectedVenueRect.contains(x, y)) {
                 mTargetVenue = mSelectedVenue;
                 mTargetPoint = null;
                 mNavigation.setTarget(new LocationPoint(mLocation.id, subLoc.id, mTargetVenue.x, mTargetVenue.y));
                 mBackView.setVisibility(View.VISIBLE);
+                return;
             }
+
             cancelVenue();
             return;
         }
-
-        //Venue selection
-       // mSelectedVenue = getVenue(x, y);
-        mSelectedVenueRect = new RectF();
 
         mHandler.post(mRunnable);
     }
