@@ -45,7 +45,7 @@ import java.util.TimerTask;
 import static android.R.attr.textSize;
 import static com.navigine.naviginesdk.NavigineSDK.TAG;
 
-public class NavigineFragment extends Fragment implements DrawFragment {
+public class NavigineFragment extends Fragment {
 
     //initilization of everything
     private static NavigationThread mNavigation = null;
@@ -70,12 +70,12 @@ public class NavigineFragment extends Fragment implements DrawFragment {
     private Venue mTargetVenue;
     private Venue mSelectedVenue;
     private RectF mSelectedVenueRect;
-    private View mBackView;
     private Spinner mSpinner;
     private boolean touched = false;
-    private float xRec, yRec, mHeight, mWidth;
     private Paint mPaint;
-    private Canvas mCan;
+    private Venue venue22;
+    private static Venue[] venArg;
+    private String venues;
 
 
     @Override
@@ -94,8 +94,6 @@ public class NavigineFragment extends Fragment implements DrawFragment {
         //grabs the grizzly head resource
         venueBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.grizzly);
 
-        mBackView = getActivity().findViewById(R.id.back_view);
-        mBackView.setVisibility(View.INVISIBLE);
         mSpinner = getActivity().findViewById(R.id.spinner);
 
         //initializes locationview...it's what views the map
@@ -166,14 +164,21 @@ public class NavigineFragment extends Fragment implements DrawFragment {
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String venues = parent.getItemAtPosition(position).toString();
+                venues = parent.getItemAtPosition(position).toString();
 
-                for (int i = 0; i < subLoc.venues.size(); ++i){
+                venArg = new Venue[subLoc.venues.size()];
 
-                    Venue venue22 = subLoc.venues.get(i);
+                System.out.println("THIS IS THE VENUE " + venues);
 
-                    if (venue22.name == venues){
-                    //TODO: set touched true boolean
+                if (venues != "Select a room") {
+                    for (int i = 0; i < subLoc.venues.size(); ++i) {
+
+                        venue22 = subLoc.venues.get(i);
+
+                        if (venue22.name == venues) {
+
+                            venArg[i] = venue22;
+                        }
                     }
                 }
             }
@@ -187,35 +192,36 @@ public class NavigineFragment extends Fragment implements DrawFragment {
     }
 
     private void drawRect(Canvas canvas) {
-        //TODO: set if for touched boolean
-        mPaint = new Paint();
 
-        //mSelectedVenue =
-        RectF mRectangle = new RectF();
-        //if (mSelectedVenue != null) {
+            mPaint = new Paint();
+            RectF mRectangle = new RectF();
 
-        final float h  = 200000;
-        final float w  = 200000;
-        final float x0 = 2;
-        final float y0 = 2 - 50 * displayDensity;
-        mRectangle.set(x0 - w/2, y0 - h/2, x0 + w/2, y0 + h/2);
+            for(int i = 0; i < subLoc.venues.size(); ++i){
 
-        mPaint.setARGB(255, 64, 163, 205);
-        canvas.drawRoundRect(mRectangle, h/2, h/2, mPaint);
+                if (venArg != null){
+                    //TODO: fix this
+                    if (subLoc.venues.contains(venArg[i])){
+                        PointF T = mLocationView.getScreenCoordinates(venArg[i].x, venArg[i].y);
+                        final float textWidth = mPaint.measureText(venArg[i].name);
+                        System.out.println("This is it "+venArg[i].name);
 
-        mPaint.setARGB(255, 255, 255, 255);
-        canvas.drawText("HELLLOOOOOOO", x0 - 20000/2, y0 + textSize/4, mPaint);
-        System.out.println("this is the rectangle stuff");
-    }
+                        final float h  = 100;
+                        final float w  = 300;
+                        final float x0 = T.x;
+                        final float y0 = T.y-260;
+                        mRectangle.set(x0-w, y0-h, x0+w, y0+h);
 
-    @Override
-    public void onDraw(Canvas canvas){
+                        mPaint.setARGB(255, 64, 163, 205);
+                        canvas.drawRoundRect(mRectangle, h/2, h/2, mPaint);
 
-        canvas.drawColor(Color.WHITE);
-        if(touched) {
-            canvas.drawRect(xRec, yRec, xRec+mWidth, yRec+mHeight, mPaint);
-            mHandler.post(mRunnable);
-        }
+                        mPaint.setARGB(255, 255, 255, 255);
+                        mPaint.setTextSize(75);
+                        mPaint.setTextAlign(Paint.Align.CENTER);
+                        canvas.drawText(venArg[i].name, mRectangle.centerX() , mRectangle.centerY(), mPaint);
+                        //System.out.println("this is the rectangle stuff");
+                    }
+                }
+            }
     }
 
     private void drawVenues(Canvas canvas) {
@@ -243,6 +249,8 @@ public class NavigineFragment extends Fragment implements DrawFragment {
         if (mSelectedVenue != null) {
             final PointF T = mLocationView.getScreenCoordinates(mSelectedVenue.x, mSelectedVenue.y);
             final float textWidth = paint.measureText(mSelectedVenue.name);
+
+            mSelectedVenueRect = new RectF();
 
             final float h  = 50 * displayDensity;
             final float w  = Math.max(120 * displayDensity, textWidth + h/2);
@@ -313,8 +321,6 @@ public class NavigineFragment extends Fragment implements DrawFragment {
     private void drawPoints(Canvas canvas) {
 
         final int solidColor  = Color.argb(255, 64, 163, 205);  // Light-blue color
-        final int circleColor = Color.argb(127, 64, 163, 205);  // Semi-transparent light-blue color
-        final int arrowColor  = Color.argb(255, 255, 255, 255); // White color
         final float dp        = displayDensity;
         final float textSize  = 0.05f * dp;
 
@@ -440,7 +446,6 @@ public class NavigineFragment extends Fragment implements DrawFragment {
             mPinPointRect = null;
 
             mNavigation.cancelTargets();
-            mBackView.setVisibility(View.GONE);
             mHandler.post(mRunnable);
 
     }
@@ -460,7 +465,6 @@ public class NavigineFragment extends Fragment implements DrawFragment {
                 mPinPoint     = null;
                 mPinPointRect = null;
                 mNavigation.setTarget(mTargetPoint);
-                mBackView.setVisibility(View.VISIBLE);
                 return;
             }
 
@@ -477,7 +481,6 @@ public class NavigineFragment extends Fragment implements DrawFragment {
                 mTargetVenue = mSelectedVenue;
                 mTargetPoint = null;
                 mNavigation.setTarget(new LocationPoint(mLocation.id, subLoc.id, mTargetVenue.x, mTargetVenue.y));
-                mBackView.setVisibility(View.VISIBLE);
                 return;
             }
 
@@ -774,11 +777,6 @@ public class NavigineFragment extends Fragment implements DrawFragment {
                 mNavigation.setMode(NavigationThread.MODE_NORMAL);
 
             }
-
-            if (mTargetPoint != null || mTargetVenue != null)
-                mBackView.setVisibility(View.VISIBLE);
-            else
-                mBackView.setVisibility(View.GONE);
 
             //gets the device info from the navigation thread.
             mDeviceInfo = mNavigation.getDeviceInfo();
