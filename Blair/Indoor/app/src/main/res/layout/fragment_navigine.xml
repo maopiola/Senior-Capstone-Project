@@ -7,9 +7,16 @@
 
     <com.navigine.naviginesdk.LocationView
         android:id="@+id/navigation_location_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_gravity="bottom"
+        android:layout_height="424dp"
         android:longClickable="false" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="55dp" />
 
 
 </FrameLayout>

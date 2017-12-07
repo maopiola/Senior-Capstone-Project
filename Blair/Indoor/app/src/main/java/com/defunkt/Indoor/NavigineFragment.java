@@ -6,9 +6,12 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,18 +23,26 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.navigine.naviginesdk.DeviceInfo;
 import com.navigine.naviginesdk.Location;
+import com.navigine.naviginesdk.LocationPoint;
 import com.navigine.naviginesdk.LocationView;
 import com.navigine.naviginesdk.NavigationThread;
 import com.navigine.naviginesdk.NavigineSDK;
+import com.navigine.naviginesdk.RoutePath;
 import com.navigine.naviginesdk.SubLocation;
 import com.navigine.naviginesdk.Venue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import static android.R.attr.textSize;
 import static com.navigine.naviginesdk.NavigineSDK.TAG;
 
 public class NavigineFragment extends Fragment {
@@ -50,6 +61,22 @@ public class NavigineFragment extends Fragment {
     private DeviceInfo mDeviceInfo;
     private Bitmap venueBitmap;
     public static float  displayDensity;
+    private TimerTask mTimerTask;
+    private Timer mTimer = new Timer();
+    private static final int UPDATE_TIMEOUT = 50;  // milliseconds
+    private LocationPoint mPinPoint;
+    private LocationPoint mTargetPoint;
+    private RectF mPinPointRect;
+    private Venue mTargetVenue;
+    private Venue mSelectedVenue;
+    private RectF mSelectedVenueRect;
+    private Spinner mSpinner;
+    private boolean touched = false;
+    private Paint mPaint;
+    private Venue venue22;
+    private static Venue[] venArg;
+    private String venues;
+
 
     @Override
     //loads all of this into our activity navigation drawer frame
@@ -62,8 +89,15 @@ public class NavigineFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        getActivity().setTitle("OU Indoors: Maps");
+
         //grabs the grizzly head resource
         venueBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.grizzly);
+
+        mSpinner = getActivity().findViewById(R.id.spinner);
+
+        //initializes locationview...it's what views the map
+        mLocationView = getActivity().findViewById(R.id.navigation_location_view);
 
         //checks the permissions granted, obviously
         checkPermissions();
@@ -71,18 +105,17 @@ public class NavigineFragment extends Fragment {
         //Loads map from server
         (new LoadTask()).execute();
 
-        //initializes locationview...it's what views the map
-        mLocationView = getActivity().findViewById(R.id.navigation_location_view);
-
         //setting up the listeners for the mapview
         mLocationView.setListener(
                 new LocationView.Listener(){
 
                     //will handle Dijkstra point placement
                     @Override public void onClick(float x, float y){handleClick(x, y);}
+
                     //may make this display the names of the venues
                     @Override public void onLongClick(float x, float y){handleOnLockClick(x, y);}
-                    @Override public void onDoubleClick(float x, float y){}
+
+                    @Override public void onDoubleClick(float x, float y){handleDoubleClick(x, y);}
 
                     //this is unneccessary since it is handled but the android OS
                     @Override public void onZoom(float ratio) {}
@@ -90,34 +123,120 @@ public class NavigineFragment extends Fragment {
                     //this is also handled by android, might want to implement a different way
                     @Override public void onScroll(float x, float y){}
 
-                    //this will handle drawing the route of the Dijkstra
+                    //this will handle drawing the route of the Dijkstra, venues, points
                     @Override public void onDraw(Canvas canvas){
-                        drawVenues(canvas);
 
+                        drawPoints(canvas);
+                        drawVenues(canvas);
+                        drawDevice(canvas);
+                        drawRect(canvas);
                     }
                 }
         );
 
         loadMap();
+
+        // Starting interface updates
+        mTimerTask = new TimerTask() {
+            @Override public void run()
+            {
+                mHandler.post(mRunnable);
+            }
+        };
+        mTimer.schedule(mTimerTask, UPDATE_TIMEOUT, UPDATE_TIMEOUT);
+
+        ArrayList<String> spinnerArray = new ArrayList<String>();
+
+        for(int i = 0; i < subLoc.venues.size(); ++i){
+            Venue venue1 = subLoc.venues.get(i);
+
+            if (i == 0){
+                spinnerArray.add("Select a room");
+            }
+
+            spinnerArray.add(venue1.name);
+        }
+
+        ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, spinnerArray);
+        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(spinnerArrayAdapter);
+
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                venues = parent.getItemAtPosition(position).toString();
+
+                venArg = new Venue[subLoc.venues.size()];
+
+                System.out.println("THIS IS THE VENUE " + venues);
+
+                if (venues != "Select a room") {
+                    for (int i = 0; i < subLoc.venues.size(); ++i) {
+
+                        venue22 = subLoc.venues.get(i);
+
+                        if (venue22.name == venues) {
+
+                            venArg[i] = venue22;
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+
+        });
+    }
+
+    private void drawRect(Canvas canvas) {
+
+            mPaint = new Paint();
+            RectF mRectangle = new RectF();
+
+            for(int i = 0; i < subLoc.venues.size(); ++i){
+
+                if (venArg != null){
+                    //TODO: fix this
+                    if (subLoc.venues.contains(venArg[i])){
+                        PointF T = mLocationView.getScreenCoordinates(venArg[i].x, venArg[i].y);
+                        final float textWidth = mPaint.measureText(venArg[i].name);
+                        System.out.println("This is it "+venArg[i].name);
+
+                        final float h  = 100;
+                        final float w  = 300;
+                        final float x0 = T.x;
+                        final float y0 = T.y-260;
+                        mRectangle.set(x0-w, y0-h, x0+w, y0+h);
+
+                        mPaint.setARGB(255, 64, 163, 205);
+                        canvas.drawRoundRect(mRectangle, h/2, h/2, mPaint);
+
+                        mPaint.setARGB(255, 255, 255, 255);
+                        mPaint.setTextSize(75);
+                        mPaint.setTextAlign(Paint.Align.CENTER);
+                        canvas.drawText(venArg[i].name, mRectangle.centerX() , mRectangle.centerY(), mPaint);
+                        //System.out.println("this is the rectangle stuff");
+                    }
+                }
+            }
     }
 
     private void drawVenues(Canvas canvas) {
 
-        if (mLocation == null || mCurrentSubLocationIndex < 0)
+        if (mLocation == null || mCurrentSubLocationIndex < 0) {
             return;
+        }
 
-        final float venueSize = 0.1f * displayDensity;
+        final float venueSize = 0.5f * displayDensity;
 
         Paint paint = new Paint();
 
         for(int i = 0; i < subLoc.venues.size(); ++i) {
 
             Venue venue = subLoc.venues.get(i);
-
-            if (venue.subLocation != subLoc.id) {
-                continue;
-
-            }
 
             final PointF P = mLocationView.getScreenCoordinates(venue.x, venue.y);
             final float x0 = P.x - venueSize/2;
@@ -126,16 +245,253 @@ public class NavigineFragment extends Fragment {
             final float y1 = P.y + venueSize/2;
             canvas.drawBitmap(venueBitmap, null, new RectF(x0, y0, x1, y1), paint);
         }
+
+        if (mSelectedVenue != null) {
+            final PointF T = mLocationView.getScreenCoordinates(mSelectedVenue.x, mSelectedVenue.y);
+            final float textWidth = paint.measureText(mSelectedVenue.name);
+
+            mSelectedVenueRect = new RectF();
+
+            final float h  = 50 * displayDensity;
+            final float w  = Math.max(120 * displayDensity, textWidth + h/2);
+            final float x0 = T.x;
+            final float y0 = T.y - 50 * displayDensity;
+            mSelectedVenueRect.set(x0 - w/2, y0 - h/2, x0 + w/2, y0 + h/2);
+
+            paint.setARGB(255, 64, 163, 205);
+            canvas.drawRoundRect(mSelectedVenueRect, h/2, h/2, paint);
+
+            paint.setARGB(255, 255, 255, 255);
+            canvas.drawText(mSelectedVenue.name, x0 - textWidth/2, y0 + textSize/4, paint);
+
+        }
+    }
+
+    private Venue getVenue(float x, float y){
+
+        Venue v0 = null;
+        float d0 = 1000f;
+
+        for(int i = 0; i < subLoc.venues.size(); ++i){
+
+            Venue venue = subLoc.venues.get(i);
+
+            PointF P = mLocationView.getScreenCoordinates(venue.x, venue.y);
+            float d = Math.abs(x - P.x) + Math.abs(y - P.y);
+
+            if (d < 30f * displayDensity && d < d0){
+                v0 = new Venue(venue);
+                d0 = d;
+            }
+        }
+
+        return v0;
+    }
+
+    private void cancelVenue(){
+
+        mSelectedVenue = null;
+        mHandler.post(mRunnable);
+    }
+
+    private void makePin(PointF P) {
+
+        if (mTargetPoint != null || mTargetVenue != null) {
+            Log.e(TAG, "Unable to make route. You must cancel previous route first.");
+            return;
+        }
+
+        if (mDeviceInfo.errorCode != 0) {
+            Log.e(TAG, "Unable to make route. Navigation is unavailable.");
+            return;
+        }
+
+        mPinPoint = new LocationPoint(mLocation.id, subLoc.id, P.x, P.y);
+        mPinPointRect = new RectF();
+        mHandler.post(mRunnable);
+    }
+
+    private void cancelPin(){
+
+        mPinPoint = null;
+        mPinPointRect = null;
+        mHandler.post(mRunnable);
+    }
+
+    private void drawPoints(Canvas canvas) {
+
+        final int solidColor  = Color.argb(255, 64, 163, 205);  // Light-blue color
+        final float dp        = displayDensity;
+        final float textSize  = 0.05f * dp;
+
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setTextSize(textSize);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
+        // Draws pinpoint
+        if (mPinPoint != null && mPinPoint.subLocation == subLoc.id) {
+            final PointF T = mLocationView.getScreenCoordinates(mPinPoint);
+            final float tRadius = 0.05f * dp;
+
+            //make route bar
+            paint.setARGB(255, 0, 0, 0);
+            paint.setStrokeWidth(1 * dp);
+            canvas.drawLine(T.x, T.y, T.x, T.y - 3 * tRadius, paint);
+
+            //pinpoint
+            paint.setColor(solidColor);
+            paint.setStrokeWidth(0);
+            canvas.drawCircle(T.x, T.y - 3 * tRadius, 0.5f*tRadius, paint);
+
+            final String text = "Make route";
+            final float textWidth = paint.measureText(text);
+            final float h  = 0.5f * dp;
+            final float w  = Math.max(1 * dp, textWidth + h/2);
+            final float x0 = T.x;
+            final float y0 = T.y - 0.05f * dp;
+
+            mPinPointRect.set(x0 - w/2, y0 - h/2, x0 + w/2, y0 + h/2);
+
+            paint.setColor(solidColor);
+            canvas.drawRoundRect(mPinPointRect, h/2, h/2, paint);
+
+            paint.setARGB(255, 255, 255, 255);
+            canvas.drawText(text, x0 - textWidth/2, y0 + textSize/4, paint);
+        }
+
+        //draws target point
+        if (mTargetPoint != null && mTargetPoint.subLocation == subLoc.id) {
+            final PointF T = mLocationView.getScreenCoordinates(mTargetPoint);
+            final float tRadius = 0.025f * dp;
+
+            paint.setARGB(255, 0, 0, 0);
+            paint.setStrokeWidth(0.25f * dp);
+            //T is the coordinates of the point that we are making
+            //black line on pinpoint
+            canvas.drawLine(T.x, T.y, T.x, T.y - 3 * tRadius, paint);
+
+            paint.setColor(solidColor);
+            canvas.drawCircle(T.x, T.y - 3 * tRadius, tRadius, paint);
+        }
+    }
+
+    private void drawDevice(Canvas canvas) {
+
+        final int solidColor  = Color.argb(255, 64,  163, 205); // Light-blue color
+        final int circleColor = Color.argb(127, 64,  163, 205); // Semi-transparent light-blue color
+        final float dp = displayDensity;
+
+        // Preparing paints
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+
+        /// Drawing device path (if it exists)
+        if (mDeviceInfo.paths != null && mDeviceInfo.paths.size() > 0) {
+            RoutePath path = mDeviceInfo.paths.get(0);
+            if (path.points.size() >= 2) {
+                paint.setColor(solidColor);
+                for(int j = 1; j < path.points.size(); ++j) {
+                    LocationPoint P = path.points.get(j-1);
+                    LocationPoint Q = path.points.get(j);
+                    if (P.subLocation == subLoc.id && Q.subLocation == subLoc.id) {
+                        paint.setStrokeWidth(0.05f * dp);
+                        PointF P1 = mLocationView.getScreenCoordinates(P);
+                        PointF Q1 = mLocationView.getScreenCoordinates(Q);
+                        canvas.drawLine(P1.x, P1.y, Q1.x, Q1.y, paint);
+                    }
+                }
+            }
+        }
+
+        paint.setStrokeCap(Paint.Cap.BUTT);
+
+        final float x  = mDeviceInfo.x;
+        final float y  = mDeviceInfo.y;
+        final float r  = mDeviceInfo.r;
+        final float angle = mDeviceInfo.azimuth;
+        final float sinA = (float)Math.sin(angle);
+        final float cosA = (float)Math.cos(angle);
+        final float radius  = mLocationView.getScreenLengthX(r);
+        final float radius1 = .08f * dp;
+
+        PointF O = mLocationView.getScreenCoordinates(x, y);
+        PointF P = new PointF(O.x - radius1 * sinA * 0.22f, O.y + radius1 * cosA * 0.22f);
+        PointF Q = new PointF(O.x + radius1 * sinA * 0.55f, O.y - radius1 * cosA * 0.55f);
+
+        // Drawing transparent circle
+        paint.setStrokeWidth(0);
+        paint.setColor(circleColor);
+        canvas.drawCircle(O.x, O.y, radius, paint);
+
+        // Drawing solid circle
+        paint.setColor(solidColor);
+        canvas.drawCircle(O.x, O.y, radius1, paint);
+
+        Path path = new Path();
+        path.moveTo(Q.x, Q.y);
+        path.lineTo(P.x, P.y);
+        path.lineTo(Q.x, Q.y);
+        canvas.drawPath(path, paint);
+
+    }
+
+    private void handleDoubleClick(float x, float y){
+
+        //resets the pinpoint drop
+            mTargetPoint  = null;
+            mTargetVenue  = null;
+            mPinPoint     = null;
+            mPinPointRect = null;
+
+            mNavigation.cancelTargets();
+            mHandler.post(mRunnable);
+
     }
 
     private void handleOnLockClick(float x, float y) {
-        //TODO: Might use this for seeing venue names on long click of venues
 
+            makePin(mLocationView.getAbsCoordinates(x, y));
+            cancelVenue();
     }
 
     private void handleClick(float x, float y) {
-        //TODO: set this up so the user can pick a point they want to travel to.
+
+        if (mPinPoint != null) {
+            if (mPinPointRect != null && mPinPointRect.contains(x, y)) {
+                mTargetPoint  = mPinPoint;
+                mTargetVenue  = null;
+                mPinPoint     = null;
+                mPinPointRect = null;
+                mNavigation.setTarget(mTargetPoint);
+                return;
+            }
+
+            cancelPin();
+            return;
+        }
+
+        //Venue selection
+        mSelectedVenue = getVenue(x, y);
+        mSelectedVenueRect = new RectF();
+
+        if (mSelectedVenue != null) {
+            if (mSelectedVenueRect != null && mSelectedVenueRect.contains(x, y)) {
+                mTargetVenue = mSelectedVenue;
+                mTargetPoint = null;
+                mNavigation.setTarget(new LocationPoint(mLocation.id, subLoc.id, mTargetVenue.x, mTargetVenue.y));
+                return;
+            }
+
+            cancelVenue();
+            return;
+        }
+
+        mHandler.post(mRunnable);
     }
+
+
 
     //grabs all of the permissions that we need to run the app
     public boolean checkPermissions(){

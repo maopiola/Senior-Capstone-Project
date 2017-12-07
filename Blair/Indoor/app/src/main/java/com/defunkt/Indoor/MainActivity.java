@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String TAG;
 
     //location id for the north foundation
-    private int LOCATION_ID =2267;
+    private int LOCATION_ID = 2267;
 
     //progress dialog
     //these are the little dialogs that pop up saying, "logging in"
@@ -53,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //the title that is set up top of the app
         setTitle("OU Indoor Login");
+
+        NavigineSDK.startLocationLoader(LOCATION_ID, false);
 
         //getting firebase auth object
         firebaseAuth = FirebaseAuth.getInstance();
