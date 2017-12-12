@@ -215,7 +215,7 @@ public class NavigineFragment extends Fragment {
                     canvas.drawRoundRect(mRectangle, h/2, h/2, mPaint);
 
                     mPaint.setARGB(255, 255, 255, 255);
-                    mPaint.setTextSize(75);
+                    mPaint.setTextSize(60);
                     mPaint.setTextAlign(Paint.Align.CENTER);
                     canvas.drawText(venArg[i].name, mRectangle.centerX() , mRectangle.centerY(), mPaint);
                     //System.out.println("this is the rectangle stuff");
