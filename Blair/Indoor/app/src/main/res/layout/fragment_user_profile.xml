@@ -21,7 +21,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.207" />
+        app:layout_constraintVertical_bias="0.161" />
 
     <TextView
         android:id="@+id/lblProfileEmail"
@@ -38,7 +38,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lblDisplayName"
-        app:layout_constraintVertical_bias="0.028" />
+        app:layout_constraintVertical_bias="0.037" />
 
     <TextView
         android:id="@+id/lblDisplayP"
@@ -50,11 +50,11 @@
         android:layout_marginTop="8dp"
         android:text="@string/displayname"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.037"
+        app:layout_constraintHorizontal_bias="0.032"
         app:layout_constraintLeft_toRightOf="@+id/lblDisplayName"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.207" />
+        app:layout_constraintVertical_bias="0.161" />
 
     <TextView
         android:id="@+id/lblEmailP"
@@ -67,11 +67,11 @@
         android:text="@string/emailP2"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.037"
+        app:layout_constraintHorizontal_bias="0.023"
         app:layout_constraintLeft_toRightOf="@+id/lblProfileEmail"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lblDisplayP"
-        app:layout_constraintVertical_bias="0.028" />
+        app:layout_constraintVertical_bias="0.037" />
 
     <TextView
         android:id="@+id/lblUpdatePassword"
@@ -84,28 +84,27 @@
         android:text="@string/want_to_update_your_password"
         android:textColor="@android:color/holo_blue_dark"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lblUpdateEmail"
-        app:layout_constraintVertical_bias="0.177" />
+        app:layout_constraintVertical_bias="0.318" />
 
     <TextView
         android:id="@+id/lblUpdateEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="202dp"
+        android:layout_marginBottom="72dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:text="@string/want_to_update_your_email"
         android:textColor="@android:color/holo_blue_dark"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/txtEmailP"
-        app:layout_constraintVertical_bias="0.935" />
+        app:layout_constraintTop_toBottomOf="@+id/btnSubmitP"
+        app:layout_constraintVertical_bias="1.0" />
 
     <EditText
         android:id="@+id/txtEmailP"
@@ -137,7 +136,21 @@
         android:layout_marginBottom="8dp"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="8dp"
-        app:layout_constraintVertical_bias="0.463"
+        app:layout_constraintVertical_bias="0.782"
         app:layout_constraintBottom_toBottomOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="178dp"
+        android:layout_height="154dp"
+        app:srcCompat="@drawable/grizzly"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="8dp" />
 
 </android.support.constraint.ConstraintLayout>
