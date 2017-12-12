@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String TAG;
 
     //location id for the north foundation
-    private int LOCATION_ID = 2267;
+    private int LOCATION_ID = 2255; //2267;
 
     //progress dialog
     //these are the little dialogs that pop up saying, "logging in"

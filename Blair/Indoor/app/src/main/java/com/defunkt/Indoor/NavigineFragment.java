@@ -193,35 +193,35 @@ public class NavigineFragment extends Fragment {
 
     private void drawRect(Canvas canvas) {
 
-            mPaint = new Paint();
-            RectF mRectangle = new RectF();
+        mPaint = new Paint();
+        RectF mRectangle = new RectF();
 
-            for(int i = 0; i < subLoc.venues.size(); ++i){
+        for(int i = 0; i < subLoc.venues.size(); ++i){
 
-                if (venArg != null){
-                    //TODO: fix this
-                    if (subLoc.venues.contains(venArg[i])){
-                        PointF T = mLocationView.getScreenCoordinates(venArg[i].x, venArg[i].y);
-                        final float textWidth = mPaint.measureText(venArg[i].name);
-                        System.out.println("This is it "+venArg[i].name);
+            if (venArg != null){
+                //TODO: fix this
+                if (subLoc.venues.contains(venArg[i])){
+                    PointF T = mLocationView.getScreenCoordinates(venArg[i].x, venArg[i].y);
+                    final float textWidth = mPaint.measureText(venArg[i].name);
+                    System.out.println("This is it "+venArg[i].name);
 
-                        final float h  = 100;
-                        final float w  = 300;
-                        final float x0 = T.x;
-                        final float y0 = T.y-260;
-                        mRectangle.set(x0-w, y0-h, x0+w, y0+h);
+                    final float h  = 100;
+                    final float w  = 300;
+                    final float x0 = T.x;
+                    final float y0 = T.y-260;
+                    mRectangle.set(x0-w, y0-h, x0+w, y0+h);
 
-                        mPaint.setARGB(255, 64, 163, 205);
-                        canvas.drawRoundRect(mRectangle, h/2, h/2, mPaint);
+                    mPaint.setARGB(255, 64, 163, 205);
+                    canvas.drawRoundRect(mRectangle, h/2, h/2, mPaint);
 
-                        mPaint.setARGB(255, 255, 255, 255);
-                        mPaint.setTextSize(75);
-                        mPaint.setTextAlign(Paint.Align.CENTER);
-                        canvas.drawText(venArg[i].name, mRectangle.centerX() , mRectangle.centerY(), mPaint);
-                        //System.out.println("this is the rectangle stuff");
-                    }
+                    mPaint.setARGB(255, 255, 255, 255);
+                    mPaint.setTextSize(75);
+                    mPaint.setTextAlign(Paint.Align.CENTER);
+                    canvas.drawText(venArg[i].name, mRectangle.centerX() , mRectangle.centerY(), mPaint);
+                    //System.out.println("this is the rectangle stuff");
                 }
             }
+        }
     }
 
     private void drawVenues(Canvas canvas) {
@@ -440,20 +440,20 @@ public class NavigineFragment extends Fragment {
     private void handleDoubleClick(float x, float y){
 
         //resets the pinpoint drop
-            mTargetPoint  = null;
-            mTargetVenue  = null;
-            mPinPoint     = null;
-            mPinPointRect = null;
+        mTargetPoint  = null;
+        mTargetVenue  = null;
+        mPinPoint     = null;
+        mPinPointRect = null;
 
-            mNavigation.cancelTargets();
-            mHandler.post(mRunnable);
+        mNavigation.cancelTargets();
+        mHandler.post(mRunnable);
 
     }
 
     private void handleOnLockClick(float x, float y) {
 
-            makePin(mLocationView.getAbsCoordinates(x, y));
-            cancelVenue();
+        makePin(mLocationView.getAbsCoordinates(x, y));
+        cancelVenue();
     }
 
     private void handleClick(float x, float y) {
@@ -757,34 +757,34 @@ public class NavigineFragment extends Fragment {
 
     final Runnable mRunnable =
             new Runnable() {
-        public void run() {
-            if (mNavigation == null) {
-                Log.d(TAG, "Navigation is not supported on this device.");
-                return;
-            }
+                public void run() {
+                    if (mNavigation == null) {
+                        Log.d(TAG, "Navigation is not supported on this device.");
+                        return;
+                    }
 
-            //check in the location is loaded
-            if (mLocation == null || mCurrentSubLocationIndex < 0) {
-                Log.e(TAG, "The location is unable to be loaded.");
-                return;
-            }
+                    //check in the location is loaded
+                    if (mLocation == null || mCurrentSubLocationIndex < 0) {
+                        Log.e(TAG, "The location is unable to be loaded.");
+                        return;
+                    }
 
-            //gets the current sublocation
-            SubLocation subLoc = mLocation.subLocations.get(mCurrentSubLocationIndex);
+                    //gets the current sublocation
+                    SubLocation subLoc = mLocation.subLocations.get(mCurrentSubLocationIndex);
 
-            //Starts navigation
-            if (mNavigation.getMode() == NavigationThread.MODE_IDLE) {
-                mNavigation.setMode(NavigationThread.MODE_NORMAL);
+                    //Starts navigation
+                    if (mNavigation.getMode() == NavigationThread.MODE_IDLE) {
+                        mNavigation.setMode(NavigationThread.MODE_NORMAL);
 
-            }
+                    }
 
-            //gets the device info from the navigation thread.
-            mDeviceInfo = mNavigation.getDeviceInfo();
+                    //gets the device info from the navigation thread.
+                    mDeviceInfo = mNavigation.getDeviceInfo();
 
-            //redraws the map
-            mLocationView.redraw();
-        }
-    };
+                    //redraws the map
+                    mLocationView.redraw();
+                }
+            };
 
     //load the location into the SDK
     class LoadTask extends AsyncTask<Void, Void, Boolean> {
@@ -810,4 +810,3 @@ public class NavigineFragment extends Fragment {
         }
     }
 }
-
