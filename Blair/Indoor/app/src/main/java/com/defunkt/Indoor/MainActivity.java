@@ -35,7 +35,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView lblForgotPassword;
     private String TAG;
 
-    //location id for the north foundation
+    //location id for the north foundation 2267
+    //location id for the EC is 2255
     private int LOCATION_ID = 2255; //2267;
 
     //progress dialog
