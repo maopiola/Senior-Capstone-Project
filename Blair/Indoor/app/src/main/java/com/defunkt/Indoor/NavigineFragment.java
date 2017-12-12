@@ -50,7 +50,7 @@ public class NavigineFragment extends Fragment {
     //initilization of everything
     private static NavigationThread mNavigation = null;
     private static String USER_HASH = "3255-7212-207D-BFE1";
-    private int LOCATION_ID =2267;
+    private int LOCATION_ID =2255;
     private final int permission = 1334;
     private LocationView mLocationView;
     private Location mLocation;
