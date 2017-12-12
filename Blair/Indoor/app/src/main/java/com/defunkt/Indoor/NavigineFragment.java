@@ -230,7 +230,8 @@ public class NavigineFragment extends Fragment {
             return;
         }
 
-        final float venueSize = 0.5f * displayDensity;
+        //gizzly head size
+        final float venueSize = 0.2f * displayDensity;
 
         Paint paint = new Paint();
 
